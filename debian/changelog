@@ -1,8 +1,9 @@
 qmlog (0.0.5) unstable; urgency=low
 
   * copyright files
+  * meego+gitorious
 
- -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Thu, 19 Aug 2010 15:36:51 +0300
+ -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Fri, 20 Aug 2010 16:27:29 +0300
 
 qmlog (0.0.4) unstable; urgency=low
 
