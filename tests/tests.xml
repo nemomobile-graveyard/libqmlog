@@ -1,0 +1,10 @@
+<testdefinition version="0.1">
+  <suite name="qmlog-tests" domain="System Software">
+    <set name="simple_tests" description="basic qmlog functionality" feature="System Control" requirement="">
+      <environments><scratchbox>false</scratchbox><hardware>true</hardware></environments>
+      <case name="trivial" description="fake test">
+        <step>logtest</step>
+      </case>
+    </set>
+  </suite>
+</testdefinition>

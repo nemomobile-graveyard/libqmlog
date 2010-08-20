@@ -1,0 +1,38 @@
+Source: qmlog
+Section: misc
+Priority: optional
+Maintainer: Ilya Dogolazky <ilya.dogolazky@nokia.com>
+Build-Depends: debhelper (>= 4.1.0),
+ libqt4-dev (>= 4.5)
+Standards-Version: 3.7.2
+
+Package: libqmlog0
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: generic logging library
+ This package provides a library for writing log
+
+Package: libqmlog0-dbg
+Architecture: any
+Depends: libqmlog0 (= ${binary:Version})
+Description: debug symbols for libqmlog0
+ This package contains debug information for libqmlog0
+
+Package: libqmlog-dev
+Architecture: any
+Depends: libqmlog0 (= ${binary:Version}), libqt4-dev (>= 4.5)
+Description: development package for libqmlog
+ Provides header files for qmlog library
+
+Package: qmlog-tests
+Architecture: any
+Depends: ${shlibs:Depends}, ci-testing
+XB-Maemo-CI-Packages: libqmlog0
+XB-Maemo-CI-Stage: fast, staging, acceptance, validation
+Section: tests
+Description: testcases for qmlog library
+
+Package: qmlog-tests-dbg
+Architecture: any
+Depends: qmlog-tests (= ${binary:Version})
+Description: debug symbols for qmlog testcases
