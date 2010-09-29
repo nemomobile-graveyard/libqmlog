@@ -3,9 +3,8 @@ QT -= Gui
 TARGET = logtest
 INSTALLS = target tests
 
-LIBS += -lqmlog
+LIBS += -lqmlog -L../src
 
-QMAKE_LIBDIR_FLAGS += -L../src
 INCLUDEPATH += ../src
 
 SOURCES = logtest.cpp
