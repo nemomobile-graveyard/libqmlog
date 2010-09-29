@@ -37,7 +37,7 @@ using namespace std ;
 
 #include <qm/log>
 
-bool log_t::use_syslog=false, log_t::use_stderr=false ;
+bool log_t::use_syslog=false, log_t::use_stderr=true ;
 FILE *log_t::fp=NULL ;
 const char *log_t::prg_name = "<anonymous>" ;
 
@@ -61,6 +61,7 @@ void log_init(const char *name, const char *path, bool sys, bool std)
   {
     openlog(log_t::prg_name, LOG_PID|LOG_NDELAY /*LOG_CONS|LOG_PERROR*/, LOG_DAEMON) ;
   }
+  delete current_log;
   current_log = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
 }
 
