@@ -61,6 +61,9 @@
 
 struct log_t
 {
+  static log_t& logger();
+  static void log_init(const char *name, const char *path, bool sys, bool std) ;
+
   void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
   void message(int level) ;
   void message(int level, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
@@ -69,6 +72,8 @@ struct log_t
   void log_failed_assertion(const char *assertion, int line, const char *file, const char *func) ;
   int level(int new_level=-1) ;
   log_t(bool global, int new_level=-1, int location_mask=-1) ;
+private:
+    ~log_t() ;
 private:
   static bool use_syslog, use_stderr ;
   static FILE *fp ;
@@ -79,14 +84,13 @@ private:
   void vlog_generic(int level, bool show_level, const char *fmt, va_list args) ;
   void log_location(int level, bool message_follows, int line, const char *file, const char *func) ;
 
+  static log_t * iLogger;
+
   int verbosity_level ;
   int location_mask ;
   log_t *prev ;
-  friend void ::log_init(const char *name, const char *path, bool sys, bool std) ;
 } ;
 
-extern log_t *current_log ;
-void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #define LOG_LEVEL(args) std::auto_ptr<log_t> current_log_ptr(new log_t(true,args))
 
@@ -96,9 +100,9 @@ void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_CRITICAL
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_CRITICAL)
-#  define log_critical(...) current_log->message(LOG_LEVEL_CRITICAL, LOG_LOCATION, ## __VA_ARGS__)
+#  define log_critical(...) log_t::logger().message(LOG_LEVEL_CRITICAL, LOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_critical(...) current_log->message(LOG_LEVEL_CRITICAL, ## __VA_ARGS__)
+#  define log_critical(...) log_t::logger().message(LOG_LEVEL_CRITICAL, ## __VA_ARGS__)
 # endif
 #else
 # define log_critical(...) (void)(0)
@@ -106,9 +110,9 @@ void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_ERROR
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_ERROR)
-#  define log_error(...) current_log->message(LOG_LEVEL_ERROR, LOG_LOCATION, ## __VA_ARGS__)
+#  define log_error(...) log_t::logger().message(LOG_LEVEL_ERROR, LOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_error(...) current_log->message(LOG_LEVEL_ERROR, ## __VA_ARGS__)
+#  define log_error(...) log_t::logger().message(LOG_LEVEL_ERROR, ## __VA_ARGS__)
 # endif
 #else
 # define log_error(...) (void)(0)
@@ -116,9 +120,9 @@ void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_WARNING
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_WARNING)
-#  define log_warning(...) current_log->message(LOG_LEVEL_WARNING, LOG_LOCATION, ## __VA_ARGS__)
+#  define log_warning(...) log_t::logger().message(LOG_LEVEL_WARNING, LOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_warning(...) current_log->message(LOG_LEVEL_WARNING, ## __VA_ARGS__)
+#  define log_warning(...) log_t::logger().message(LOG_LEVEL_WARNING, ## __VA_ARGS__)
 # endif
 #else
 # define log_warning(...) (void)(0)
@@ -126,9 +130,9 @@ void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_INFO
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_INFO)
-#  define log_info(...) current_log->message(LOG_LEVEL_INFO, LOG_LOCATION, ## __VA_ARGS__)
+#  define log_info(...) log_t::logger().message(LOG_LEVEL_INFO, LOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_info(...) current_log->message(LOG_LEVEL_INFO, ## __VA_ARGS__)
+#  define log_info(...) log_t::logger().message(LOG_LEVEL_INFO, ## __VA_ARGS__)
 # endif
 #else
 # define log_info(...) (void)(0)
@@ -136,16 +140,16 @@ void log_init(const char *name, const char *path, bool sys, bool std) ;
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_DEBUG
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_DEBUG)
-#  define log_debug(...) current_log->message(LOG_LEVEL_DEBUG, LOG_LOCATION, ## __VA_ARGS__)
+#  define log_debug(...) log_t::logger().message(LOG_LEVEL_DEBUG, LOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_debug(...) current_log->message(LOG_LEVEL_DEBUG, ## __VA_ARGS__)
+#  define log_debug(...) log_t::logger().message(LOG_LEVEL_DEBUG, ## __VA_ARGS__)
 # endif
 #else
 # define log_debug(...) (void)(0)
 #endif
 
 #if LOG_ASSERTION
-# define log_assert(x, ...) do { if(!(x)) current_log->log_failed_assertion(#x, LOG_LOCATION, ## __VA_ARGS__) ; } while(0)
+# define log_assert(x, ...) do { if(!(x)) log_t::logger().log_failed_assertion(#x, LOG_LOCATION, ## __VA_ARGS__) ; } while(0)
 #else
 # define log_assert(...) (void)(0)
 #endif

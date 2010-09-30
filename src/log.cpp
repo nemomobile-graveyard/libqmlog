@@ -37,18 +37,36 @@ using namespace std ;
 
 #include <qm/log>
 
-bool log_t::use_syslog=false, log_t::use_stderr=true ;
+bool log_t::use_syslog=false, log_t::use_stderr=false ;
 FILE *log_t::fp=NULL ;
 const char *log_t::prg_name = "<anonymous>" ;
 
-log_t *current_log = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
+log_t *log_t::iLogger = NULL;
 
-void log_init(const char *name, const char *path, bool sys, bool std)
+log_t& log_t::logger()
 {
-  static bool init_called = false ;
-  if(init_called)
-    log_critical("log_init() was already called earlier") ;
-  init_called = true ;
+  if(!iLogger)
+  {
+    //TODO default settings might be changed here
+    log_init("default", "default.log", true, true);
+    log_info("default init for logger");
+  }
+  return *iLogger;
+}
+
+log_t::~log_t()
+{
+  delete prev;
+  if(fp)
+  {
+    fclose(fp);
+    fp = NULL;
+  }
+  iLogger = NULL;
+}
+
+void log_t::log_init(const char *name, const char *path, bool sys, bool std)
+{
   log_t::use_syslog = sys, log_t::use_stderr = std, log_t::prg_name = name ;
   if(path!=NULL && (log_t::fp = fopen(path, "aw"))==NULL)
   {
@@ -61,8 +79,8 @@ void log_init(const char *name, const char *path, bool sys, bool std)
   {
     openlog(log_t::prg_name, LOG_PID|LOG_NDELAY /*LOG_CONS|LOG_PERROR*/, LOG_DAEMON) ;
   }
-  delete current_log;
-  current_log = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
+  delete iLogger;
+  iLogger = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
 }
 
 log_t::log_t(bool global, int new_level, int new_mask)
@@ -70,18 +88,18 @@ log_t::log_t(bool global, int new_level, int new_mask)
   if(new_level<0)
   {
     log_assert(global) ;
-    verbosity_level = current_log->verbosity_level ;
+    verbosity_level = iLogger->verbosity_level ;
   }
   else
     verbosity_level = new_level ;
   if(new_mask<0)
-    location_mask = global ? current_log->location_mask : LOG_MAX_LOCATION ;
+    location_mask = global ? iLogger->location_mask : LOG_MAX_LOCATION ;
   else
     location_mask = new_mask ;
   if(global)
   {
-    prev = current_log ;
-    current_log = this ;
+    prev = iLogger ;
+    iLogger = this ;
   }
   else
     prev = NULL ;
