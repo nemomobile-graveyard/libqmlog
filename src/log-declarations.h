@@ -55,7 +55,7 @@
 #define LOG_ASSERTION 1
 #endif
 
-#if LOG_MAX_LEVEL<1 || LOG_MAX_LEVEL>5
+#if LOG_MAX_LEVEL<LOG_LEVEL_INTERNAL || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
 #error LOG_MAX_LEVEL outside of [0..5]
 #endif
 

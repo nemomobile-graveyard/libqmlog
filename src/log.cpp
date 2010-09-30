@@ -48,6 +48,7 @@ log_t& log_t::logger()
   if(!iLogger)
   {
     //TODO default settings might be changed here
+    //default name can be taken from /proc/<pid>/cmdline
     log_init("default", "default.log", true, true);
     log_info("default init for logger");
   }
