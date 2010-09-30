@@ -47,8 +47,10 @@
 #define LOG_MAX_LEVEL 5
 #endif
 
+#define LOG_BIT_MASK(bit) (1 << bit)
+
 #ifndef LOG_MAX_LOCATION
-#define LOG_MAX_LOCATION ((1<<LOG_LEVEL_DEBUG)|(1<<LOG_LEVEL_INTERNAL))
+#define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
 #endif
 
 #ifndef LOG_ASSERTION
@@ -58,6 +60,83 @@
 #if LOG_MAX_LEVEL<LOG_LEVEL_INTERNAL || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
 #error LOG_MAX_LEVEL outside of [0..5]
 #endif
+
+#define LOG_OUTPUT_WORD_WRAP       0
+#define LOG_OUTPUT_MESSAGE         1
+#define LOG_OUTPUT_FILE_LINE       2
+#define LOG_OUTPUT_FUNC            3
+#define LOG_OUTPUT_PID             4
+#define LOG_OUTPUT_NAME            5
+#define LOG_OUTPUT_TZ_SYM_LINK     6
+#define LOG_OUTPUT_TIME_LOW_BIT    7
+#define LOG_OUTPUT_TIME_HIGH_BIT   8
+#define LOG_OUTPUT_DATE            9
+#define LOG_OUTPUT_TZ_ABBR          10
+#define LOG_OUTPUT_MTIMER_LOW_BIT  11
+#define LOG_OUTPUT_MTIMER_HIGH_BIT 12
+
+
+class LoggerSettings
+{
+public:
+  enum
+  {
+      EMTimerMs = LOG_BIT_MASK(LOG_OUTPUT_MTIMER_HIGH_BIT)
+    , EMTimerNs = LOG_BIT_MASK(LOG_OUTPUT_MTIMER_LOW_BIT)
+    , EMTimer = EMTimerMs | EMTimerNs //both ms and ns bits means no ms and ns
+    , ETzAbbr = LOG_BIT_MASK(LOG_OUTPUT_TZ_ABBR)
+    , EDate = LOG_BIT_MASK(LOG_OUTPUT_DATE)
+    , ETimeMs = LOG_BIT_MASK(LOG_OUTPUT_TIME_HIGH_BIT)
+    , ETimeNs = LOG_BIT_MASK(LOG_OUTPUT_TIME_LOW_BIT)
+    , ETime = ETimeMs | ETimeNs //both ms and ns bits means no ms and ns
+    , ETzSymLink = LOG_BIT_MASK(LOG_OUTPUT_TZ_SYM_LINK)
+    , EDateTimeInfo = EMTimer | ETzAbbr | EDate | ETime | ETzSymLink
+
+    , EName = LOG_BIT_MASK(LOG_OUTPUT_NAME)
+    , EPid = LOG_BIT_MASK(LOG_OUTPUT_PID)
+    , EProcessInfo = EName | EPid
+
+    , EFunc = LOG_BIT_MASK(LOG_OUTPUT_FUNC)
+    , EFileLine = LOG_BIT_MASK(LOG_OUTPUT_FILE_LINE)
+    , EMessage = LOG_BIT_MASK(LOG_OUTPUT_MESSAGE)
+    , EDebugInfo = EFunc | EFileLine | EMessage
+
+    , EWordWrap = LOG_BIT_MASK(LOG_OUTPUT_WORD_WRAP)
+  };
+
+public:
+  LoggerSettings(int new_verbosity_level, int new_location_mask, int new_message_format);
+
+  void setVerbosityLevel(int new_verbosity_level);
+  void setLocationMask(int new_location_mask);
+  void setMessageFormat(int new_message_format);
+
+  bool isMTimerMs() const;
+  bool isMTimerNs() const;
+  bool isMTimer() const;
+  bool isTzAbbr() const;
+  bool isDate() const;
+  bool isTimeMs() const;
+  bool isTimeNs() const;
+  bool isTime() const;
+  bool isDateTimeInfo() const;
+
+  bool isName() const;
+  bool isPid() const;
+  bool isProcessInfo() const;
+
+  bool isFunc() const;
+  bool isFileLine() const;
+  bool isMessage() const;
+  bool isDebugInfo() const;
+
+  bool isWordWrap() const;
+
+private:
+  int verbosity_level ;
+  int location_mask ;
+  int message_format ;
+};
 
 struct log_t
 {

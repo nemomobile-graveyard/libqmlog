@@ -293,6 +293,119 @@ void log_t::log_failed_assertion(const char *assertion, int line, const char *fi
   log_failed_assertion(assertion, line, file, func, "\x01");
 }
 
+
+//========== Logger Settings ==============
+//TODO move to separate file
+
+LoggerSettings::LoggerSettings(int new_verbosity_level, int new_location_mask, int new_message_format)
+  : verbosity_level(new_verbosity_level)
+  , location_mask(new_location_mask)
+  , message_format(new_message_format)
+{
+}
+
+void LoggerSettings::setVerbosityLevel(int new_verbosity_level)
+{
+  verbosity_level = new_verbosity_level;
+}
+
+void LoggerSettings::setLocationMask(int new_location_mask)
+{
+  location_mask = new_location_mask;
+}
+
+void LoggerSettings::setMessageFormat(int new_message_format)
+{
+  message_format = new_message_format;
+}
+
+bool LoggerSettings::isMTimerMs() const
+{
+  return (message_format & EMTimerMs) && !(message_format & EMTimerNs);
+}
+
+bool LoggerSettings::isMTimerNs() const
+{
+  return !(message_format & EMTimerMs) && (message_format & EMTimerNs);
+}
+
+bool LoggerSettings::isMTimer() const
+{
+  return message_format & EMTimer;
+}
+
+bool LoggerSettings::isTzAbbr() const
+{
+  return message_format & ETzAbbr;
+}
+
+bool LoggerSettings::isDate() const
+{
+  return message_format & EDate;
+}
+
+bool LoggerSettings::isTimeMs() const
+{
+  return (message_format & ETimeMs) && !(message_format & ETimeNs);
+}
+
+bool LoggerSettings::isTimeNs() const
+{
+  return !(message_format & ETimeMs) && (message_format & ETimeNs);
+}
+
+bool LoggerSettings::isTime() const
+{
+  return message_format & ETime;
+}
+
+bool LoggerSettings::isDateTimeInfo() const
+{
+  return message_format & EDateTimeInfo;
+}
+
+bool LoggerSettings::isName() const
+{
+  return message_format & EName;
+}
+
+bool LoggerSettings::isPid() const
+{
+  return message_format & EPid;
+}
+
+bool LoggerSettings::isProcessInfo() const
+{
+  return message_format & EProcessInfo;
+}
+
+
+bool LoggerSettings::isFunc() const
+{
+  return message_format & EFunc;
+}
+
+bool LoggerSettings::isFileLine() const
+{
+  return message_format & EFileLine;
+}
+
+bool LoggerSettings::isMessage() const
+{
+  return message_format & EMessage;
+}
+
+
+bool LoggerSettings::isDebugInfo() const
+{
+  return message_format & EDebugInfo;
+}
+
+bool LoggerSettings::isWordWrap() const
+{
+  return message_format & EWordWrap;
+}
+
 #if 0
 int main()
 {
