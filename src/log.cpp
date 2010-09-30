@@ -406,6 +406,22 @@ bool LoggerSettings::isWordWrap() const
   return message_format & EWordWrap;
 }
 
+//======== LoggerDev =============
+//TODO move to separate file
+void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs)
+{
+}
+
+void LoggerDev::setSettings(const LoggerSettings& aSettings)
+{
+  iSettings = aSettings;
+}
+
+const LoggerSettings& LoggerDev::settings() const
+{
+  return iSettings;
+}
+
 #if 0
 int main()
 {

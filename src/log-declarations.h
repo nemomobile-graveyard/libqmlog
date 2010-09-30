@@ -138,6 +138,23 @@ private:
   int message_format ;
 };
 
+class LoggerDev
+{
+public:
+  virtual ~LoggerDev(){};
+
+  void logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs);
+  void setSettings(const LoggerSettings& aSettings);
+
+protected:
+  virtual void vlogGeneric( int aLevel, bool aShowLevel, const char *aDateTimeInfo,
+                            const char* aProcessInfo, const char *aMessage) = 0;
+  const LoggerSettings& settings() const;
+
+private:
+  LoggerSettings iSettings;
+};
+
 struct log_t
 {
   static log_t& logger();
