@@ -306,17 +306,30 @@ LoggerSettings::LoggerSettings(int new_verbosity_level, int new_location_mask, i
 
 void LoggerSettings::setVerbosityLevel(int new_verbosity_level)
 {
+  //TODO insert assert here
   verbosity_level = new_verbosity_level;
 }
 
 void LoggerSettings::setLocationMask(int new_location_mask)
 {
+  //TODO insert assert here
   location_mask = new_location_mask;
 }
 
 void LoggerSettings::setMessageFormat(int new_message_format)
 {
+  //TODO insert assert here
   message_format = new_message_format;
+}
+
+bool LoggerSettings::isLogShown(int aLevel) const
+{
+  return aLevel <= verbosity_level;
+}
+
+bool LoggerSettings::isLocationShown(int aLevel) const
+{
+  return (1 << aLevel) & location_mask;
 }
 
 bool LoggerSettings::isMTimerMs() const

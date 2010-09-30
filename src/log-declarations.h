@@ -111,6 +111,9 @@ public:
   void setLocationMask(int new_location_mask);
   void setMessageFormat(int new_message_format);
 
+  bool isLogShown(int aLevel) const;
+  bool isLocationShown(int aLevel) const;
+
   bool isMTimerMs() const;
   bool isMTimerNs() const;
   bool isMTimer() const;
