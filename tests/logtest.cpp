@@ -42,7 +42,7 @@ void log_without_init(bool print_start_end_log = true)
   test_log_macro_with_fmt("string only");
   test_log_macro_with_fmt("\"x = %d\" == \"x = 5\"", 5);
 
-  const char * format = "\"fmt\" is in \"const char * format\""
+  const char * format = "\"fmt\" is in \"const char * format\"";
   test_log_macro_with_fmt(format);
 
   log_change_settings_locally();
