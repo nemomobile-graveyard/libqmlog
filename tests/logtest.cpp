@@ -1,4 +1,4 @@
-#include <log-declarations.h>
+#include <qm/log>
 
 void log_change_settings_locally()
 {

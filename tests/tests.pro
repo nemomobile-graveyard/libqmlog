@@ -5,7 +5,7 @@ INSTALLS = target tests
 
 LIBS += -lqmlog -L../src
 
-INCLUDEPATH += ../src
+INCLUDEPATH += ../H
 
 SOURCES = logtest.cpp
 
