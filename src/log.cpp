@@ -212,6 +212,12 @@ void log_t::message(int level, const char *fmt, ...)
   va_end(args) ;
 }
 
+void log_t::message(int level)
+{
+  //TODO rework this to remove hack completelly
+  message(level, " ");
+}
+
 void log_t::message(int level, int line, const char *file, const char *func, const char *fmt, ...)
 {
   assert((1<<level) & LOG_MAX_LOCATION) ;
@@ -220,7 +226,8 @@ void log_t::message(int level, int line, const char *file, const char *func, con
   if(level>verbosity_level)
     return ;
 
-  bool have_a_message = fmt[1]!='\0', location_shown = false ;
+  //TODO rework this to remove hack completelly
+  bool have_a_message = !(fmt[0] == ' ' && fmt[1] == 0), location_shown = false ;
 
   if((1<<level)&location_mask) // show location
   {
@@ -237,10 +244,19 @@ void log_t::message(int level, int line, const char *file, const char *func, con
   }
 }
 
+void log_t::message(int level, int line, const char *file, const char *func)
+{
+  //TODO rework this to remove hack completelly
+  message(level, line, file, func, " ");
+}
+
 void log_t::log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
 {
   log_location(LOG_LEVEL_INTERNAL, true, line, file, func) ;
-  bool message_follows = fmt[1]!='\0' ;
+
+  //TODO rework this to remove hack completelly
+  bool message_follows = !(fmt[0] == ' ' && fmt[1] == 0);
+
   log_generic(LOG_LEVEL_INTERNAL, false, "Assertion failed: %s%s.", assertion, message_follows?". Detailed info follows":"") ;
   if(message_follows)
   {
@@ -250,6 +266,12 @@ void log_t::log_failed_assertion(const char *assertion, int line, const char *fi
     va_end(args) ;
   }
   abort() ; do { sleep(1) ; } while (true) ;
+}
+
+void log_t::log_failed_assertion(const char *assertion, int line, const char *file, const char *func)
+{
+  //TODO rework this to remove hack completelly
+  log_failed_assertion(assertion, line, file, func, " ");
 }
 
 #if 0
