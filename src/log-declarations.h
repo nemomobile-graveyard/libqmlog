@@ -122,6 +122,7 @@ public:
   bool isTimeMs() const;
   bool isTimeNs() const;
   bool isTime() const;
+  bool isTzSymLink() const;
   bool isDateTimeInfo() const;
 
   bool isName() const;
@@ -144,18 +145,46 @@ private:
 class LoggerDev
 {
 public:
-  virtual ~LoggerDev(){};
+  enum
+  {
+      DefaultLevel = LOG_MAX_LEVEL
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr /*TODO remove --->>>*/| LoggerSettings::EMTimer
+                      | LoggerSettings::EDate | LoggerSettings::ETimeMs /*TODO remove --->>>*/| LoggerSettings::ETime
+                      | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
+                      | LoggerSettings::EDebugInfo | LoggerSettings::EWordWrap
+  };
+public:
+  virtual ~LoggerDev();
 
   void logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs);
   void setSettings(const LoggerSettings& aSettings);
 
 protected:
+  LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
   virtual void vlogGeneric( int aLevel, bool aShowLevel, const char *aDateTimeInfo,
                             const char* aProcessInfo, const char *aMessage) = 0;
   const LoggerSettings& settings() const;
 
 private:
   LoggerSettings iSettings;
+};
+
+class FileLoggerDev : public LoggerDev
+{
+public:
+  FileLoggerDev(const char *aFileName);
+  ~FileLoggerDev();
+
+protected:
+  FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
+
+  virtual void vlogGeneric( int aLevel, bool aShowLevel, const char *aDateTimeInfo,
+                            const char* aProcessInfo, const char *aMessage);
+
+private:
+  FILE *iFp;
+  bool iIsFpOwner;
 };
 
 struct log_t
@@ -171,13 +200,15 @@ struct log_t
   void log_failed_assertion(const char *assertion, int line, const char *file, const char *func) ;
   int level(int new_level=-1) ;
   log_t(bool global, int new_level=-1, int location_mask=-1) ;
+  void addLoggerDev(LoggerDev* aLoggerDev);
 private:
     ~log_t() ;
-private:
+public: //TODO for debug
   static bool use_syslog, use_stderr ;
   static FILE *fp ;
   static const char *prg_name ;
-  static const char *level_name(int level) ;
+  static const char *level_name(int level) ; //TODO move to FileLoggerDev?
+private:
   static int syslog_level_id(int level) ;
   void log_generic(int level, bool show_level, const char *fmt, ...) __attribute__((format(printf,4,5))) ;
   void vlog_generic(int level, bool show_level, const char *fmt, va_list args) ;
@@ -188,6 +219,8 @@ private:
   int verbosity_level ;
   int location_mask ;
   log_t *prev ;
+
+  std::auto_ptr<LoggerDev> iDev; //TODO it shall be array
 } ;
 
 
