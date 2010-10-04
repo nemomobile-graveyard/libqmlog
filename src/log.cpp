@@ -158,11 +158,6 @@ void log_t::vlog_generic(int level, bool show_level, const char *fmt, va_list ar
       fprintf(stderr, "\n") ;
   }
 
-  if(iDev.get())
-  {
-    iDev->logGeneric(level, show_level, fmt, args);
-  }
-
   //TODO below is dup of FileLoggerDev
   //kept for test and debug purposes
   // to be removed before release
@@ -247,6 +242,13 @@ void log_t::message(int level, const char *fmt, ...)
   va_list args ;
   va_start(args, fmt) ;
   vlog_generic(level, true, fmt, args) ;
+
+  //TODO test code, update required
+  if(iDev.get())
+  {
+    iDev->logGeneric(level, -1, NULL, NULL, fmt, args);
+  }
+
   va_end(args) ;
 }
 
@@ -273,11 +275,18 @@ void log_t::message(int level, int line, const char *file, const char *func, con
     location_shown = true ;
   }
 
-  if(have_a_message)
+  if(have_a_message || iDev.get())
   {
     va_list args ;
     va_start(args, fmt) ;
     vlog_generic(level, !location_shown, fmt, args) ;
+
+    //TODO test code, update required
+    if(iDev.get())
+    {
+      iDev->logGeneric(level, line, file, func, fmt, args);
+    }
+
     va_end(args) ;
   }
 }
@@ -493,7 +502,8 @@ int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const c
   return current_len + vsnprintf((char*)(str + current_len), buf_len - current_len - 1, fmt, arg);
 }
 
-void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs)
+void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
+                           const char *aFmt, va_list anArgs)
 {
   //TODO asser below shall be in another place
   assert(0<=aLevel) ;
@@ -605,12 +615,34 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
     }
   }
 
+  const int debugInfoLen = 1024;
+  char debugInfo[debugInfoLen];
+  memset(debugInfo, '\0', debugInfoLen);
+  int debugInfoCurrentLen = 0;
+  bool isFullDebugInfo = false;
+
+  if(settings().isDebugInfo() && settings().isLocationShown(aLevel))
+  {
+    if(settings().isFileLine() && aLine > 0 && aFile)
+    {
+      debugInfoCurrentLen = snprintfappend(debugInfo, debugInfoLen, debugInfoCurrentLen, "%s:%d", aFile, aLine);
+      addSpace = true;
+    }
+
+    if(settings().isFunc() && aFunc)
+    {
+      debugInfoCurrentLen = snprintfappend(debugInfo, debugInfoLen, debugInfoCurrentLen, addSpace? " in %s": "in %s", aFunc);
+    }
+
+    isFullDebugInfo = (aLine > 0 && aFile && aFunc) && (settings().isFileLine() && settings().isFunc());
+  }
+
   const int messageLen = 1024;
   char message[messageLen];
   memset(message, '\0', messageLen);
   vsnprintf(message, messageLen, aFmt, anArgs) ;
 
-  vlogGeneric(aLevel, aShowLevel, dateInfo, processInfo, message);
+  vlogGeneric(aLevel, dateInfo, processInfo, debugInfo, isFullDebugInfo, message);
 
 }
 
@@ -659,16 +691,36 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 {
 }
 
-//TODO aShowLevel is not required probably
-//better to add it into format!
-void FileLoggerDev::vlogGeneric(int aLevel, bool aShowLevel, const char *aDateTimeInfo,
-                                const char* aProcessInfo, const char *aMessage)
+void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                                const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
+{
+  bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
+  bool hasDebugInfo = vlogDebugInfo(aLevel, aDebugInfo, hasPrefix);
+  bool hasMessage = (aMessage && aMessage[0] != 0);
+
+  if(hasMessage)
+  {
+    if(aIsFullDebugInfo && settings().isWordWrap())
+    {
+      fprintf(iFp, ":\n");
+      hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
+    }
+
+    fprintf(iFp, " %s", aMessage);
+  }
+  else if(hasDebugInfo)
+  {
+    fprintf(iFp, ".");
+  }
+
+  fprintf(iFp, "\n");
+  fflush(iFp);
+}
+
+bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo)
 {
   bool hasDateTimeInfo = (aDateTimeInfo && aDateTimeInfo[0] != 0);
   bool hasProcessInfo = (aProcessInfo && aProcessInfo[0] != 0);
-  bool hasDebugInfo = true; //TODO add real condition
-  bool hasFullDebugInfo = false; //TODO add real condition
-  bool hasMessage = (aMessage && aMessage[0] != 0);
 
   if(hasDateTimeInfo)
   {
@@ -677,35 +729,26 @@ void FileLoggerDev::vlogGeneric(int aLevel, bool aShowLevel, const char *aDateTi
 
   if(hasProcessInfo)
   {
-    const char * fmt = hasDateTimeInfo? " [%s]": "[%s]";
-    fprintf(iFp, fmt, aProcessInfo);
+    fprintf(iFp, hasDateTimeInfo? " [%s]": "[%s]", aProcessInfo);
   }
 
-  if(aShowLevel)
-  {
-    const char * fmt = (hasDateTimeInfo || hasProcessInfo)? " %s:": "%s:";
-    fprintf(iFp, fmt, log_t::level_name(aLevel));
-  }
-
-  //TODO heh! there is debug info? must add it!
-
-  if(hasMessage)
-  {
-    const char * fmt =  (hasFullDebugInfo && settings().isWordWrap())? "\n%s"
-                        : (hasDateTimeInfo || hasProcessInfo || hasDebugInfo || aShowLevel)? " %s"
-                          : "%s";
-    fprintf(iFp, fmt, aMessage);
-  }
-
-  if(hasDateTimeInfo || hasProcessInfo || aShowLevel || hasMessage)
-  {
-    fprintf(iFp, "\n");
-  }
-  fflush(iFp) ;
+  return (hasDateTimeInfo | hasProcessInfo);
 }
 
+bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists)
+{
+  bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0); 
 
+  fprintf(iFp, hasDebugInfo?  (aPrefixExists? " %s at": "%s at"):
+                              (aPrefixExists? " %s:":"%s:"), log_t::level_name(aLevel));
 
+  if(hasDebugInfo)
+  {
+    fprintf(iFp, aPrefixExists? " %s": "%s", aDebugInfo);
+  }
+
+  return hasDebugInfo;
+}
 
 #if 0
 int main()

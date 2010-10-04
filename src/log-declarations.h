@@ -98,8 +98,9 @@ public:
 
     , EFunc = LOG_BIT_MASK(LOG_OUTPUT_FUNC)
     , EFileLine = LOG_BIT_MASK(LOG_OUTPUT_FILE_LINE)
+    , EDebugInfo = EFunc | EFileLine
+
     , EMessage = LOG_BIT_MASK(LOG_OUTPUT_MESSAGE)
-    , EDebugInfo = EFunc | EFileLine | EMessage
 
     , EWordWrap = LOG_BIT_MASK(LOG_OUTPUT_WORD_WRAP)
   };
@@ -131,8 +132,9 @@ public:
 
   bool isFunc() const;
   bool isFileLine() const;
-  bool isMessage() const;
   bool isDebugInfo() const;
+
+  bool isMessage() const;
 
   bool isWordWrap() const;
 
@@ -152,18 +154,20 @@ public:
     , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr /*TODO remove --->>>*/| LoggerSettings::EMTimer
                       | LoggerSettings::EDate | LoggerSettings::ETimeMs /*TODO remove --->>>*/| LoggerSettings::ETime
                       | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
-                      | LoggerSettings::EDebugInfo | LoggerSettings::EWordWrap
+                      | LoggerSettings::EDebugInfo | LoggerSettings::EMessage
+                      | LoggerSettings::EWordWrap
   };
 public:
   virtual ~LoggerDev();
 
-  void logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs);
+  void logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
+                  const char *aFmt, va_list anArgs);
   void setSettings(const LoggerSettings& aSettings);
 
 protected:
   LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
-  virtual void vlogGeneric( int aLevel, bool aShowLevel, const char *aDateTimeInfo,
-                            const char* aProcessInfo, const char *aMessage) = 0;
+  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) = 0;
   const LoggerSettings& settings() const;
 
 private:
@@ -183,8 +187,10 @@ public:
 protected:
   FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
 
-  virtual void vlogGeneric( int aLevel, bool aShowLevel, const char *aDateTimeInfo,
-                            const char* aProcessInfo, const char *aMessage);
+  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage);
+  bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo);
+  bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists);
 
 private:
   FILE *iFp;
