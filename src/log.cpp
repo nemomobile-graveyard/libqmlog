@@ -199,10 +199,8 @@ void log_t::vlog_generic(int level, bool show_level, const char *fmt, va_list ar
       sprintf(buffer2, " '%s'", buffer_link) ;
     }
 
-  fprintf(fp, "[%ld (%s) %s%s] [%s(%d)] %s%s", nano.tv_sec,
-    zone, buffer, buffer2, log_t::prg_name, getpid(), str_level1, str_level2) ;
-/*disabled MTimerMs amd MtimeMs  fprintf(fp, "[%ld.%03ld (%s) %s.%03ld%s] [%s(%d)] %s%s", nano.tv_sec,
-    nano.tv_nsec/1000000, zone, buffer, tv.tv_usec/1000, buffer2, log_t::prg_name, getpid(), str_level1, str_level2) ;*/
+    fprintf(fp, "[%ld.%03ld (%s) %s.%03ld%s] [%s(%d)] %s%s", nano.tv_sec,
+      nano.tv_nsec/1000000, zone, buffer, tv.tv_usec/1000, buffer2, log_t::prg_name, getpid(), str_level1, str_level2) ;
     vfprintf(fp, fmt, args) ;
     if(!has_newline)
       fprintf(fp, "\n") ;

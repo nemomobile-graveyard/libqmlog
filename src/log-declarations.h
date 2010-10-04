@@ -151,8 +151,8 @@ public:
   {
       DefaultLevel = LOG_MAX_LEVEL
     , DefaultLocation = LOG_MAX_LOCATION
-    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr /*TODO remove --->>>*/| LoggerSettings::EMTimer
-                      | LoggerSettings::EDate | LoggerSettings::ETimeMs /*TODO remove --->>>*/| LoggerSettings::ETime
+    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr
+                      | LoggerSettings::EDate | LoggerSettings::ETimeMs
                       | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
                       | LoggerSettings::EDebugInfo | LoggerSettings::EMessage
                       | LoggerSettings::EWordWrap
