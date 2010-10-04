@@ -167,6 +167,10 @@ protected:
   const LoggerSettings& settings() const;
 
 private:
+  int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) __attribute__((format(printf, 5, 6))) ;
+  int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg);
+
+private:
   LoggerSettings iSettings;
 };
 

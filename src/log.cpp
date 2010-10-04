@@ -32,17 +32,10 @@
 #include <unistd.h>
 #include <syslog.h>
 
-//TODO I use stringstream to make output...
-// there is faster way to do this but I need
-// something like snprintfapend()
-// It is not hard to create it... but is it necessary?
-#include <sstream>
-
 #include <algorithm>
 using namespace std ;
 
 #include <qm/log>
-#include <QDebug> //TODO remove
 
 bool log_t::use_syslog=false, log_t::use_stderr=false ;
 FILE *log_t::fp=NULL ;
@@ -84,7 +77,6 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
     if(std==false)
       log_warning("Stderr logging enabled") ;
   }
-  qDebug() << "fp =" << fp; //TODO <<<--- remove
   if(sys)
   {
     openlog(log_t::prg_name, LOG_PID|LOG_NDELAY /*LOG_CONS|LOG_PERROR*/, LOG_DAEMON) ;
@@ -487,6 +479,20 @@ LoggerDev::~LoggerDev()
 {
 }
 
+int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...)
+{
+  va_list args ;
+  va_start(args, fmt) ;
+  int ret = vsnprintfappend(str, buf_len, current_len, fmt, args);
+  va_end(args) ;
+  return ret;
+}
+
+int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg)
+{
+  return current_len + vsnprintf((char*)(str + current_len), buf_len - current_len - 1, fmt, arg);
+}
+
 void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_list anArgs)
 {
   //TODO asser below shall be in another place
@@ -499,96 +505,10 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
   if(aFmt[0]=='\x01')
     ++aFmt ;
 
-  FILE* fp = fopen("temp_test.log", "aw");
-
-  const char *str_level1 = aShowLevel ? log_t::level_name(aLevel) : "" ;
-  const char *str_level2 = aShowLevel ? ": " : "" ;
-  bool has_newline = aFmt[strlen(aFmt)-1]=='\n' ;
-
-  const int time_length = 32 ;
-  char buffer[time_length+1] ;
-
-  struct timeval tv ;
-  gettimeofday(&tv, NULL) ;
-  struct timespec nano ;
-  clock_gettime(CLOCK_MONOTONIC, &nano) ;
-
-  time_t t = tv.tv_sec ;
-  struct tm time_tm ;
-  localtime_r(&t, &time_tm) ;
-  char zone[100] ;
-  memset(zone, '\0', 100) ;
-  strncpy(zone, time_tm.tm_zone, 99) ;
-  strftime(buffer, time_length, "%F %T", &time_tm) ;
-
-  char buffer2[1024] ;
-  buffer2[0] = '\0' ;
-
-#define PRINT_ETC_LOCALTIME 1
-  if(PRINT_ETC_LOCALTIME)
-  {
-    char buffer_link[1024] ;
-    ssize_t res = readlink("/etc/localtime", buffer_link, 1023) ;
-    if(res<0)
-      strcpy(buffer_link, strerror(errno)) ; // XXX TODO use strerror_r !!
-    else
-    {
-      buffer_link[res] = '\0' ;
-      const char *base = "/usr/share/zoneinfo/" ;
-      if(strncmp(buffer_link, base, strlen(base))==0)
-        strcpy(buffer_link, buffer_link+strlen(base)) ;
-    }
-    sprintf(buffer2, " '%s'", buffer_link) ;
-  }
-
-  fprintf(fp, "[%ld (%s) %s%s] [%s(%d)] %s%s", nano.tv_sec,
-    zone, buffer, buffer2, log_t::prg_name, getpid(), str_level1, str_level2) ;
-/*disabled MTimerMs amd MtimeMs  fprintf(fp, "[%ld.%03ld (%s) %s.%03ld%s] [%s(%d)] %s%s", nano.tv_sec,
-    nano.tv_nsec/1000000, zone, buffer, tv.tv_usec/1000, buffer2, log_t::prg_name, getpid(), str_level1, str_level2) ;*/
-  vfprintf(fp, aFmt, anArgs) ;
-  if(!has_newline)
-    fprintf(fp, "\n") ;
-  fflush(fp);
-  fclose(fp);
-
-
-
-
-#if 0
-//TODO is it ok to use std::string and std::stringstream?
-// if not, need to follow method below
-// need to create something like snprintfappend
-
-  //TODO shall I move it to class attributes?
-  char dateInfo[1024];
-  memset(dateInfo, '\0', 1024);
-  char processInfo[1024];
-  memset(processInfo, '\0', 1024);
-  char message[1024];
-  memset(message, '\0', 1024);
-
-  if(settings().isMTimer())
-  {
-    struct timespec nano;
-    clock_gettime(CLOCK_MONOTONIC, &nano);
-    snprintf(dateInfo, 1024, "%ld", nano.tv_sec);
-
-    if(settings().isMTimerMs())
-    {
-      snprintf(dateInfo, 1024, ".%03ld", nano.tv_nsec/1000000);
-    }
-    else if(settings().isMTimerNs())
-    {
-      snprintf(dateInfo, 1024, ".%09ld", nano.tv_nsec);
-    }
-  }
-
-  vlogGeneric(aLevel, aShowLevel, dateInfo, processInfo, message);
-#endif
-
-
-
-  std::stringstream dateInfo;
+  const int dateInfoLen = 256;
+  char dateInfo[dateInfoLen];
+  memset(dateInfo, '\0', dateInfoLen);
+  int dateInfoCurrentLen = 0;
   bool addSpace = false;
 
   if(settings().isDateTimeInfo())
@@ -597,29 +517,18 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
     {
       struct timespec nano;
       clock_gettime(CLOCK_MONOTONIC, &nano);
-      dateInfo << nano.tv_sec;
-      //TODO snprintfappend(dateInfo, 1024, "%ld", nano.tv_sec);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, "%ld", nano.tv_sec);
 
       if(settings().isMTimerMs())
       {
-        dateInfo << '.';
-        dateInfo.fill('0');
-        dateInfo.width(3);
-        dateInfo << right << (int)nano.tv_nsec/1000000;
-        //TODO snprintfappend(dateInfo, 1024, ".%03ld", nano.tv_nsec/1000000);
+        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", nano.tv_nsec/1000000);
       }
       else if(settings().isMTimerNs())
       {
-        dateInfo << '.';
-        dateInfo.fill('0');
-        dateInfo.width(9);
-        dateInfo << right << (int)nano.tv_nsec;
-        //TODO snprintfappend(dateInfo, 1024, ".%09ld", nano.tv_nsec);
+        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%09ld", nano.tv_nsec);
       }
       addSpace = true;
     }
-
-    {//TODO <<<--- remove
 
     struct timeval tv ;
     gettimeofday(&tv, NULL) ;
@@ -629,53 +538,31 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
 
     if(settings().isTzAbbr())
     {
-      if(addSpace)
-      {
-        dateInfo << ' ';
-      //TODO snprintfappend(dateInfo, 1024, " ");
-      }
-
       char zone[100] ;
       memset(zone, '\0', 100) ;
       strncpy(zone, time_tm.tm_zone, 99); //TODO do I need strncmp now?
-      dateInfo << '(' << zone << ')';
-      //TODO snprintfappend(dateInfo, 1024, "(%s)", zone);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " (%s)": "(%s)", zone);
       addSpace = true;
     }
 
     if(settings().isDate() || settings().isTime())
     {
-      if(addSpace)
-      {
-        dateInfo << ' ';
-      //TODO snprintfappend(dateInfo, 1024, " ");
-      }
-
       const char *fmt = (settings().isDate() && settings().isTime())? "%F %T" : (settings().isDate()? "%F" : "%T" );
       const int time_length = 32 ;
       char buffer[time_length+1] ; //TODO rename
       strftime(buffer, time_length, fmt, &time_tm) ;
 
-      dateInfo << buffer;
-      //TODO snprintfappend(dateInfo, 1024, "%s", buffer);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " %s": "%s", buffer);
 
       if(settings().isTime())
       {
         if(settings().isTimeMs())
         {
-          dateInfo << '.';
-          dateInfo.fill('0');
-          dateInfo.width(3);
-          dateInfo << right << (int)tv.tv_usec/1000;
-          //TODO snprintfappend(dateInfo, 1024, ".%03ld", tv.tv_usec/1000);
+          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", tv.tv_usec/1000);
         }
         else if(settings().isTimeNs()) //TODO isTimeNs is microseconds... rename later
         {
-          dateInfo << '.';
-          dateInfo.fill('0');
-          dateInfo.width(6);
-          dateInfo << right << tv.tv_usec;
-          //TODO snprintfappend(dateInfo, 1024, ".%06ld", tv.tv_usec);
+          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%06ld", tv.tv_usec);
         }
       }
       addSpace = true;
@@ -683,12 +570,6 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
 
     if(settings().isTzSymLink())
     {
-      if(addSpace)
-      {
-        dateInfo << ' ';
-      //TODO snprintfappend(dateInfo, 1024, " ");
-      }
-
       char buffer_link[1024] ;
       ssize_t res = readlink("/etc/localtime", buffer_link, 1023) ;
       if(res<0)
@@ -701,43 +582,35 @@ void LoggerDev::logGeneric(int aLevel, bool aShowLevel, const char *aFmt, va_lis
           strncpy(buffer_link, buffer_link+strlen(base), 1024) ;
       }
 
-      dateInfo << '\'' << buffer_link << '\'';
-      //TODO snprintfappend(dateInfo, 1024, "\'%s\'", buffer_link);
-      addSpace = true;
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace?  " \'%s\'":"\'%s\'", buffer_link);
     }
-
-    }//TODO <<<--- remove
   }
-
-
-
-
   addSpace = false;
-  std::stringstream processInfo;
+
+  const int processInfoLen = 64;
+  char processInfo[processInfoLen];
+  memset(processInfo, '\0', processInfoLen);
+  int processInfoCurrentLen = 0;
 
   if(settings().isProcessInfo())
   {
     if(settings().isName())
     {
-      processInfo << log_t::prg_name;
-      //TODO snprintfappend(dateInfo, 1024, "%s", log_t::prg_name);
+      processInfoCurrentLen = snprintfappend(processInfo, processInfoLen, processInfoCurrentLen, "%s", log_t::prg_name);
     }
 
     if(settings().isPid())
     {
-      processInfo << '(' << getpid() << ')';
-      //TODO snprintfappend(dateInfo, 1024, "(%s)", getpid());
+      processInfoCurrentLen = snprintfappend(processInfo, processInfoLen, processInfoCurrentLen, "(%d)", getpid());
     }
   }
 
+  const int messageLen = 1024;
+  char message[messageLen];
+  memset(message, '\0', messageLen);
+  vsnprintf(message, messageLen, aFmt, anArgs) ;
 
-  char message[1024];
-  memset(message, '\0', 1024);
-  vsnprintf(message, 1024, aFmt, anArgs) ;
-
-
-
-  vlogGeneric(aLevel, aShowLevel, dateInfo.str().c_str(), processInfo.str().c_str(), message);
+  vlogGeneric(aLevel, aShowLevel, dateInfo, processInfo, message);
 
 }
 
