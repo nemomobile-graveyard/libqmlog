@@ -175,7 +175,7 @@ class FileLoggerDev : public LoggerDev
 public:
   enum
   {
-      DefaultLevel = LOG_MAX_LEVEL
+      DefaultLevel = LOG_LEVEL_DEBUG
     , DefaultLocation = LOG_MAX_LOCATION
     , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr
                       | LoggerSettings::EDate | LoggerSettings::ETimeMs
@@ -185,7 +185,10 @@ public:
   };
 
 public:
-  FileLoggerDev(const char *aFileName);
+  FileLoggerDev(const char *aFileName, 
+                int aVerbosityLevel = DefaultLevel,
+                int aLocationMask = DefaultLocation,
+                int aMessageFormat = DefaultFormat);
   ~FileLoggerDev();
 
 protected:

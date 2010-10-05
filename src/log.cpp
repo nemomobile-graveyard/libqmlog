@@ -674,8 +674,8 @@ const LoggerSettings& LoggerDev::settings() const
 
 //================== FileLoggerDev ===============
 //TODO move to separate file
-FileLoggerDev::FileLoggerDev(const char *aFileName)
-  : LoggerDev(DefaultLevel, DefaultLocation, DefaultFormat)
+FileLoggerDev::FileLoggerDev(const char *aFileName, int aVerbosityLevel, int aLocationMask, int aMessageFormat)
+  : LoggerDev(aVerbosityLevel, aLocationMask, aMessageFormat)
   , iFp(NULL)
   , iIsFpOwner(false)
 {
