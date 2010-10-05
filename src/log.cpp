@@ -704,16 +704,24 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                                 const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
 {
+  //TODO reworl: create format string for output as in SysLogDev
   bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
   bool hasDebugInfo = vlogDebugInfo(aLevel, aDebugInfo, hasPrefix);
   bool hasMessage = (aMessage && aMessage[0] != 0);
 
   if(hasMessage)
   {
+    //TODO probably better to use (hasDebugInfo && settings().isFunc())
+    //instead of aIsFullDebugInfo
+    // aIsFullDebugInfo shall be romove everywhere in this case
     if(aIsFullDebugInfo && settings().isWordWrap())
     {
       fprintf(iFp, ":\n");
       hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
+    }
+    else if(hasDebugInfo)
+    {
+      fprintf(iFp, ":");
     }
 
     fprintf(iFp, " %s", aMessage);
@@ -749,12 +757,16 @@ bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPref
 {
   bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0); 
 
-  fprintf(iFp, hasDebugInfo?  (aPrefixExists? " %s at": "%s at"):
-                              (aPrefixExists? " %s:":"%s:"), log_t::level_name(aLevel));
+  fprintf(iFp, (hasDebugInfo && settings().isFileLine())? (aPrefixExists? " %s at": "%s at"):
+                                                          (aPrefixExists? " %s":"%s"), log_t::level_name(aLevel));
 
   if(hasDebugInfo)
   {
     fprintf(iFp, aPrefixExists? " %s": "%s", aDebugInfo);
+  }
+  else
+  {
+    fprintf(iFp, ":");
   }
 
   return hasDebugInfo;

@@ -185,7 +185,7 @@ public:
   };
 
 public:
-  FileLoggerDev(const char *aFileName, 
+  FileLoggerDev(const char *aFileName,
                 int aVerbosityLevel = DefaultLevel,
                 int aLocationMask = DefaultLocation,
                 int aMessageFormat = DefaultFormat);
