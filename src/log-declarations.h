@@ -220,6 +220,22 @@ public:
                   int aMessageFormat = DefaultFormat);
 };
 
+class StdOutLoggerDev : public FileLoggerDev
+{
+  enum
+  {
+      DefaultLevel = LOG_LEVEL_DEBUG
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EProcessInfo | LoggerSettings::EDebugInfo
+                      | LoggerSettings::EMessage | LoggerSettings::EWordWrap
+  };
+
+public:
+  StdOutLoggerDev(int aVerbosityLevel = DefaultLevel,
+                  int aLocationMask = DefaultLocation,
+                  int aMessageFormat = DefaultFormat);
+};
+
 
 struct log_t
 {

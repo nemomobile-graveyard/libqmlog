@@ -95,6 +95,7 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
 
   iLogger->addLoggerDev(new FileLoggerDev("FileLoggerDev.log")); //TODO debug code
   iLogger->addLoggerDev(new StdErrLoggerDev); //TODO debug code
+  iLogger->addLoggerDev(new StdOutLoggerDev); //TODO debug code
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -768,6 +769,10 @@ StdErrLoggerDev::StdErrLoggerDev(int aVerbosityLevel, int aLocationMask, int aMe
 {
 }
 
+StdOutLoggerDev::StdOutLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
+  : FileLoggerDev(stdout, false, aVerbosityLevel, aLocationMask, aMessageFormat)
+{
+}
 
 #if 0
 int main()
