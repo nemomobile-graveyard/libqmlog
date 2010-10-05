@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include <memory>
+#include <list>
 
 /* Verbosity levels, the upper boundary could be set at compile time.
  *
@@ -144,6 +145,8 @@ private:
   int message_format ;
 };
 
+//TODO it shall be static interface to receive times
+// time shall be the same in every logger for the same strings
 class LoggerDev
 {
 public:
@@ -230,7 +233,7 @@ private:
   int location_mask ;
   log_t *prev ;
 
-  std::auto_ptr<LoggerDev> iDev; //TODO it shall be array
+  std::list<LoggerDev*> iDevs;
 } ;
 
 

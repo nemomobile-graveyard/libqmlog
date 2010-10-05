@@ -57,12 +57,20 @@ log_t& log_t::logger()
 
 log_t::~log_t()
 {
+  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+        it != iDevs.end(); ++it)
+  {
+    delete (*it);
+    iDevs.erase(it);
+  }
+
   delete prev;
   if(fp)
   {
     fclose(fp);
     fp = NULL;
   }
+
   iLogger = NULL;
 }
 
@@ -89,7 +97,7 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
 {
   assert(aLoggerDev);
-  iDev = std::auto_ptr<LoggerDev>(aLoggerDev);
+  iDevs.push_front(aLoggerDev);
 }
 
 log_t::log_t(bool global, int new_level, int new_mask)
@@ -241,10 +249,10 @@ void log_t::message(int level, const char *fmt, ...)
   va_start(args, fmt) ;
   vlog_generic(level, true, fmt, args) ;
 
-  //TODO test code, update required
-  if(iDev.get())
+  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+        it != iDevs.end(); ++it)
   {
-    iDev->logGeneric(level, -1, NULL, NULL, fmt, args);
+    (*it)->logGeneric(level, -1, NULL, NULL, fmt, args);
   }
 
   va_end(args) ;
@@ -273,16 +281,16 @@ void log_t::message(int level, int line, const char *file, const char *func, con
     location_shown = true ;
   }
 
-  if(have_a_message || iDev.get())
+  if(true)
   {
     va_list args ;
     va_start(args, fmt) ;
-    vlog_generic(level, !location_shown, fmt, args) ;
+    if(have_a_message) vlog_generic(level, !location_shown, fmt, args) ;
 
-    //TODO test code, update required
-    if(iDev.get())
+    for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+          it != iDevs.end(); ++it)
     {
-      iDev->logGeneric(level, line, file, func, fmt, args);
+      (*it)->logGeneric(level, line, file, func, fmt, args);
     }
 
     va_end(args) ;
