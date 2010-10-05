@@ -58,15 +58,6 @@ log_t& log_t::logger()
 
 log_t::~log_t()
 {
-  //TODO check if I need to remove devices
-  //probably it shall be user responsibility (to allow auto_ptr usage for temp dev changes)
-  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
-        it != iDevs.end(); ++it)
-  {
-    delete (*it);
-    iDevs.erase(it);
-  }
-
   delete prev;
   if(fp)
   {
@@ -94,6 +85,9 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
   }
   iLogger = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
 
+  //TODO default loggers must be in auto_ptrs and come outside
+  // below is memory leak
+  // it will be removed soon (kept for debug purpose)
   iLogger->addLoggerDev(new FileLoggerDev("FileLoggerDev.log")); //TODO debug code
   iLogger->addLoggerDev(new StdErrLoggerDev); //TODO debug code
   iLogger->addLoggerDev(new StdOutLoggerDev); //TODO debug code
