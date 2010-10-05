@@ -37,6 +37,7 @@ using namespace std ;
 
 #include <qm/log>
 
+
 bool log_t::use_syslog=false, log_t::use_stderr=false ;
 FILE *log_t::fp=NULL ;
 const char *log_t::prg_name = "<anonymous>" ;
@@ -96,6 +97,7 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
   iLogger->addLoggerDev(new FileLoggerDev("FileLoggerDev.log")); //TODO debug code
   iLogger->addLoggerDev(new StdErrLoggerDev); //TODO debug code
   iLogger->addLoggerDev(new StdOutLoggerDev); //TODO debug code
+  iLogger->addLoggerDev(new SysLogDev); //TODO debug code
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -701,6 +703,7 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 {
 }
 
+//TODO rename
 void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                                 const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
 {
@@ -785,6 +788,100 @@ StdOutLoggerDev::StdOutLoggerDev(int aVerbosityLevel, int aLocationMask, int aMe
   : FileLoggerDev(stdout, false, aVerbosityLevel, aLocationMask, aMessageFormat)
 {
 }
+
+//================== SysLogDev ===============
+//TODO move to separate file
+SysLogDev::SysLogDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
+  : LoggerDev(aVerbosityLevel, aLocationMask, aMessageFormat)
+{
+  openlog(log_t::prg_name, LOG_PID|LOG_NDELAY, LOG_DAEMON);
+}
+
+SysLogDev::~SysLogDev()
+{
+  closelog();
+}
+
+void SysLogDev::vlogGeneric(int aLevel, const char* aDateTimeInfo, const char* aProcessInfo,
+                          const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
+{
+  const int fmtLen = 32; //TODO count
+  char fmt[fmtLen];
+  memset(fmt, '\0', fmtLen);
+  int fmtCurrentLen = 0;
+
+  const int secondFmtLen = 32; //TODO count
+  char secondFmt[secondFmtLen];
+  memset(secondFmt, '\0', secondFmtLen);
+  int secondFmtCurrentLen = 0;
+
+
+  bool addSpace = false;
+  bool hasDateTimeInfo = (aDateTimeInfo && aDateTimeInfo[0] != 0);
+  bool hasProcessInfo = (aProcessInfo && aProcessInfo[0] != 0);
+  bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0);
+  bool hasMessage = (aMessage && aMessage[0] != 0);
+
+  if(hasDateTimeInfo)
+  {
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "[%%s]");
+    addSpace = true;
+  }
+  else
+  {
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s");
+  }
+
+  if(hasProcessInfo)
+  {
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, addSpace? " [%%s]": "%%s:");
+    addSpace = true;
+  }
+  else
+  {
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s");
+  }
+
+  strncpy(secondFmt, fmt, secondFmtLen);
+  secondFmtCurrentLen = fmtCurrentLen;
+
+  if(hasDebugInfo)
+  {
+    //TODO is it possible to move "at" into LoggerDev::logGeneric() now?
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, 
+                                        settings().isFileLine()?  (addSpace? " %%s at %%s": "%%s at %%s"):
+                                                                  (addSpace? " %%s %%s": "%%s %%s"));
+    fmtCurrentLen = snprintfappend( fmt, fmtLen, fmtCurrentLen, 
+                                    hasMessage? ((aIsFullDebugInfo && settings().isWordWrap())? ":": ": %%s"): ".");
+  }
+  else
+  {
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s%%s");
+    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, (hasMessage && addSpace)? " %%s":"%%s");
+  }
+
+  if(!(hasDateTimeInfo || hasProcessInfo || hasDebugInfo || hasMessage))
+  {
+    syslog(LOG_DAEMON|log_t::syslog_level_id(aLevel), "%s", log_t::level_name(aLevel));
+  }
+  else if(aIsFullDebugInfo && settings().isWordWrap())
+  {
+    syslog(LOG_DAEMON|log_t::syslog_level_id(aLevel), fmt,  aDateTimeInfo, aProcessInfo,
+                                                            log_t::level_name(aLevel), aDebugInfo);
+    if(hasMessage)
+    {
+      secondFmtCurrentLen = snprintfappend(secondFmt, secondFmtLen, secondFmtCurrentLen, "-> %%s");
+      syslog(LOG_DAEMON|log_t::syslog_level_id(aLevel), secondFmt, aDateTimeInfo, aProcessInfo, aMessage);
+    }
+  }
+  else
+  {
+    syslog(LOG_DAEMON|log_t::syslog_level_id(aLevel), fmt,  aDateTimeInfo, aProcessInfo,
+                                 hasDebugInfo? log_t::level_name(aLevel): "", aDebugInfo, aMessage);
+  }
+}
+
+
 
 #if 0
 int main()

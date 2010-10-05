@@ -161,8 +161,6 @@ protected:
   virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                             const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) = 0;
   const LoggerSettings& settings() const;
-
-private:
   int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) __attribute__((format(printf, 5, 6))) ;
   int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg);
 
@@ -237,6 +235,29 @@ public:
 };
 
 
+class SysLogDev : public LoggerDev
+{
+public:
+  enum
+  {
+      DefaultLevel = LOG_LEVEL_WARNING //TODO shall be warning
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EMessage
+  };
+
+public:
+  SysLogDev(int aVerbosityLevel = DefaultLevel,
+            int aLocationMask = DefaultLocation,
+            int aMessageFormat = DefaultFormat);
+  ~SysLogDev();
+
+protected:
+  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage);
+};
+
+
+
 struct log_t
 {
   static log_t& logger();
@@ -258,8 +279,8 @@ public: //TODO for debug
   static FILE *fp ;
   static const char *prg_name ;
   static const char *level_name(int level) ; //TODO move to FileLoggerDev?
+  static int syslog_level_id(int level) ; //TODO move to SysLogDev?
 private:
-  static int syslog_level_id(int level) ;
   void log_generic(int level, bool show_level, const char *fmt, ...) __attribute__((format(printf,4,5))) ;
   void vlog_generic(int level, bool show_level, const char *fmt, va_list args) ;
   void log_location(int level, bool message_follows, int line, const char *file, const char *func) ;
