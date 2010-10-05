@@ -57,6 +57,8 @@ log_t& log_t::logger()
 
 log_t::~log_t()
 {
+  //TODO check if I need to remove devices
+  //probably it shall be user responsibility (to allow auto_ptr usage for temp dev changes)
   for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
         it != iDevs.end(); ++it)
   {
@@ -92,6 +94,7 @@ void log_t::log_init(const char *name, const char *path, bool sys, bool std)
   iLogger = new log_t(true, LOG_MAX_LEVEL, LOG_MAX_LOCATION) ;
 
   iLogger->addLoggerDev(new FileLoggerDev("FileLoggerDev.log")); //TODO debug code
+  iLogger->addLoggerDev(new StdErrLoggerDev); //TODO debug code
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -735,7 +738,7 @@ bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcess
 
   if(hasProcessInfo)
   {
-    fprintf(iFp, hasDateTimeInfo? " [%s]": "[%s]", aProcessInfo);
+    fprintf(iFp, hasDateTimeInfo? " [%s]": "%s:", aProcessInfo);
   }
 
   return (hasDateTimeInfo | hasProcessInfo);
@@ -755,6 +758,16 @@ bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPref
 
   return hasDebugInfo;
 }
+
+
+
+//================== StdErrLoggerDev ===============
+//TODO move to separate file
+StdErrLoggerDev::StdErrLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
+  : FileLoggerDev(stderr, false, aVerbosityLevel, aLocationMask, aMessageFormat)
+{
+}
+
 
 #if 0
 int main()

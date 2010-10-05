@@ -150,17 +150,6 @@ private:
 class LoggerDev
 {
 public:
-  enum
-  {
-      DefaultLevel = LOG_MAX_LEVEL
-    , DefaultLocation = LOG_MAX_LOCATION
-    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr
-                      | LoggerSettings::EDate | LoggerSettings::ETimeMs
-                      | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
-                      | LoggerSettings::EDebugInfo | LoggerSettings::EMessage
-                      | LoggerSettings::EWordWrap
-  };
-public:
   virtual ~LoggerDev();
 
   void logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
@@ -184,6 +173,18 @@ private:
 class FileLoggerDev : public LoggerDev
 {
 public:
+  enum
+  {
+      DefaultLevel = LOG_MAX_LEVEL
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr
+                      | LoggerSettings::EDate | LoggerSettings::ETimeMs
+                      | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
+                      | LoggerSettings::EDebugInfo | LoggerSettings::EMessage
+                      | LoggerSettings::EWordWrap
+  };
+
+public:
   FileLoggerDev(const char *aFileName);
   ~FileLoggerDev();
 
@@ -199,6 +200,23 @@ private:
   FILE *iFp;
   bool iIsFpOwner;
 };
+
+class StdErrLoggerDev : public FileLoggerDev
+{
+  enum
+  {
+      DefaultLevel = LOG_LEVEL_WARNING
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EProcessInfo | LoggerSettings::EDebugInfo
+                      | LoggerSettings::EMessage | LoggerSettings::EWordWrap
+  };
+
+public:
+  StdErrLoggerDev(int aVerbosityLevel = DefaultLevel,
+                  int aLocationMask = DefaultLocation,
+                  int aMessageFormat = DefaultFormat);
+};
+
 
 struct log_t
 {
