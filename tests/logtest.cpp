@@ -58,7 +58,7 @@ void log_with_init()
   //TODO pseudo code
   // log_init (current init for a while)
   const char *log_file = "logtest.log" ;
-  log_t::log_init("logtest", log_file, true, true) ;
+  log_t::log_init("logtest") ;
   log_info("=========== with init ===========");
 
   log_without_init(false);

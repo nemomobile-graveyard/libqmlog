@@ -240,7 +240,7 @@ class SysLogDev : public LoggerDev
 public:
   enum
   {
-      DefaultLevel = LOG_LEVEL_WARNING //TODO shall be warning
+      DefaultLevel = LOG_LEVEL_WARNING
     , DefaultLocation = LOG_MAX_LOCATION
     , DefaultFormat =   LoggerSettings::EMessage
   };
@@ -254,6 +254,9 @@ public:
 protected:
   virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                             const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage);
+
+private:
+  static int syslog_level_id(int level);
 };
 
 
@@ -261,36 +264,29 @@ protected:
 struct log_t
 {
   static log_t& logger();
-  static void log_init(const char *name, const char *path, bool sys, bool std) ;
+  static void log_init(const char *name);
+  static const char* prgName();
+  static const char *level_name(int level);
 
-  void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
-  void message(int level) ;
-  void message(int level, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
-  void message(int level, int line, const char *file, const char *func) ;
-  void log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
-  void log_failed_assertion(const char *assertion, int line, const char *file, const char *func) ;
-  int level(int new_level=-1) ;
-  log_t(bool global, int new_level=-1, int location_mask=-1) ;
+  log_t();
   void addLoggerDev(LoggerDev* aLoggerDev);
-private:
-    ~log_t() ;
-public: //TODO for debug
-  static bool use_syslog, use_stderr ;
-  static FILE *fp ;
-  static const char *prg_name ;
-  static const char *level_name(int level) ; //TODO move to FileLoggerDev?
-  static int syslog_level_id(int level) ; //TODO move to SysLogDev?
-private:
-  void log_generic(int level, bool show_level, const char *fmt, ...) __attribute__((format(printf,4,5))) ;
-  void vlog_generic(int level, bool show_level, const char *fmt, va_list args) ;
-  void log_location(int level, bool message_follows, int line, const char *file, const char *func) ;
 
+  void message(int level) ;
+  void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4)));
+  void message(int level, int line, const char *file, const char *func);
+  void message(int level, int line, const char *file, const char *func, const char *fmt, ...)
+                                                            __attribute__((format(printf,6,7)));
+
+  void log_failed_assertion(const char *assertion, int line, const char *file, const char *func);
+  void log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
+                                                                                    __attribute__((format(printf,6,7)));
+private:
+  ~log_t();
+  void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
+
+private:
+  static const char *prg_name;
   static log_t * iLogger;
-
-  int verbosity_level ;
-  int location_mask ;
-  log_t *prev ;
-
   std::list<LoggerDev*> iDevs;
 } ;
 
