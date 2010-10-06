@@ -77,6 +77,12 @@ void log_t::addLoggerDev(LoggerDev* aLoggerDev)
   iDevs.push_front(aLoggerDev);
 }
 
+void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
+{
+  assert(aLoggerDev);
+  iDevs.remove(aLoggerDev);
+}
+
 //TODO search for name if is not set
 const char* log_t::prgName()
 {
@@ -166,11 +172,11 @@ void log_t::log_failed_assertion(const char *assertion, int line, const char *fi
 
 void log_t::vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args)
 {
-    for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
-          it != iDevs.end(); ++it)
-    {
-      (*it)->logGeneric(level, line, file, func, fmt, args);
-    }
+  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+        it != iDevs.end(); ++it)
+  {
+    (*it)->logGeneric(level, line, file, func, fmt, args);
+  }
 }
 
 
@@ -338,6 +344,7 @@ LoggerDev::LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
 
 LoggerDev::~LoggerDev()
 {
+  log_t::logger().removeLoggerDev(this);
 }
 
 int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const

@@ -275,6 +275,7 @@ struct log_t
   static const char *level_name(int level);
 
   void addLoggerDev(LoggerDev* aLoggerDev);
+  void removeLoggerDev(LoggerDev* aLoggerDev);
 
   void message(int level) ;
   void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4)));
@@ -297,9 +298,26 @@ private:
 } ;
 
 
-#define LOG_LEVEL(args) std::auto_ptr<log_t> current_log_ptr(new log_t(true,args))
+#define INIT_LOGGER(NAME) log_t::log_init(NAME)
 
-#define LOG_LOCAL(args) std::auto_ptr<log_t> current_log(new log_t(false,args))
+#define ADD_SYSLOG(...) std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
+                        log_t::logger().addLoggerDev(sys_log_ptr.get())
+
+#define ADD_DEBUG_SYSLOG() std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(LOG_LEVEL_DEBUG)); \
+                        log_t::logger().addLoggerDev(sys_log_ptr.get())
+
+#define ADD_STDERR_LOG(...) std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
+                        log_t::logger().addLoggerDev(stderr_log_ptr.get())
+
+#define ADD_DEBUG_STDERR_LOG() std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(LOG_LEVEL_DEBUG)); \
+                        log_t::logger().addLoggerDev(stderr_log_ptr.get())
+
+#define ADD_STDOUT_LOG(...) std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
+                        log_t::logger().addLoggerDev(stdout_log_ptr.get())
+
+#define ADD_FILE_LOG(NAME, ...) std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
+                        log_t::logger().addLoggerDev(file_log_ptr.get())
+
 
 #define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
 
