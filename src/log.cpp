@@ -367,10 +367,6 @@ void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char 
   if(!settings().isLogShown(aLevel))
     return;
 
-  //TODO remove this hack later
-  if(aFmt[0]=='\x01')
-    ++aFmt ;
-
   const int dateInfoLen = 256;
   char dateInfo[dateInfoLen];
   memset(dateInfo, '\0', dateInfoLen);
@@ -551,7 +547,7 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                                 const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
 {
-  //TODO reworl: create format string for output as in SysLogDev
+  //TODO rework: create format string for output as in SysLogDev
   bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
   bool hasDebugInfo = vlogDebugInfo(aLevel, aDebugInfo, hasPrefix);
   bool hasMessage = (aMessage && aMessage[0] != 0);
