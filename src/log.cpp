@@ -469,19 +469,26 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
 
     if(settings().isTzSymLink())
     {
-      char buffer_link[1024] ;
-      ssize_t res = readlink("/etc/localtime", buffer_link, 1023) ;
-      if(res<0)
-        strcpy(buffer_link, strerror(errno)) ; // XXX TODO use strerror_r !!
+      const int tzLinkLen = 1024;
+      char tzLink[tzLinkLen];
+      memset(tzLink, '\0', tzLinkLen);
+      ssize_t res = readlink("/etc/localtime", tzLink, tzLinkLen - 1);
+
+      if(res < 0)
+      {
+        strncpy(tzLink, strerror(errno), tzLinkLen - 1);
+      }
       else
       {
-        buffer_link[res] = '\0' ;
-        const char *base = "/usr/share/zoneinfo/" ;
-        if(strncmp(buffer_link, base, strlen(base))==0)
-          strncpy(buffer_link, buffer_link+strlen(base), 1024) ;
+        const char *base = "/usr/share/zoneinfo/";
+
+        if(strncmp(tzLink, base, strlen(base)) == 0)
+        {
+          strncpy(tzLink, tzLink + strlen(base), tzLinkLen - 1);
+        }
       }
 
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace?  " \'%s\'":"\'%s\'", buffer_link);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace?  " \'%s\'":"\'%s\'", tzLink);
     }
   }
   addSpace = false;
