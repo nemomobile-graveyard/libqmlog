@@ -88,8 +88,8 @@ public:
     , ETzAbbr = LOG_BIT_MASK(LOG_OUTPUT_TZ_ABBR)
     , EDate = LOG_BIT_MASK(LOG_OUTPUT_DATE)
     , ETimeMs = LOG_BIT_MASK(LOG_OUTPUT_TIME_HIGH_BIT)
-    , ETimeNs = LOG_BIT_MASK(LOG_OUTPUT_TIME_LOW_BIT)
-    , ETime = ETimeMs | ETimeNs //both ms and ns bits means no ms and ns
+    , ETimeMicS = LOG_BIT_MASK(LOG_OUTPUT_TIME_LOW_BIT)
+    , ETime = ETimeMs | ETimeMicS //both ms and MicS bits means no ms and MicS
     , ETzSymLink = LOG_BIT_MASK(LOG_OUTPUT_TZ_SYM_LINK)
     , EDateTimeInfo = EMTimer | ETzAbbr | EDate | ETime | ETzSymLink
 
@@ -122,7 +122,7 @@ public:
   bool isTzAbbr() const;
   bool isDate() const;
   bool isTimeMs() const;
-  bool isTimeNs() const;
+  bool isTimeMicS() const;
   bool isTime() const;
   bool isTzSymLink() const;
   bool isDateTimeInfo() const;
@@ -152,14 +152,14 @@ class LoggerDev
 public:
   virtual ~LoggerDev();
 
-  void logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
-                  const char *aFmt, va_list anArgs) const;
+  void vlogGeneric( int aLevel, int aLine, const char *aFile, const char *aFunc,
+                    const char *aFmt, va_list anArgs) const;
   void setSettings(const LoggerSettings& aSettings);
 
 protected:
   LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
-  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const = 0;
+  virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const = 0;
   const LoggerSettings& settings() const;
   int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const __attribute__((format(printf, 5, 6)));
   int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg) const;
@@ -192,8 +192,8 @@ public:
 protected:
   FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
 
-  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
+  virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
   bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const;
   bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const;
 
@@ -258,8 +258,8 @@ public:
   static SysLogDev* getDefault();
 
 protected:
-  virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
+  virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
 
 private:
   static int syslog_level_id(int level);

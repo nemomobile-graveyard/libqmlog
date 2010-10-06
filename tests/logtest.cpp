@@ -30,9 +30,6 @@ do {                                                  \
 
 void log_without_init(bool print_start_end_log = true)
 {
-  //TODO pseudo code
-  // NO log_init!
-  //some logging
   if(print_start_end_log)
   {
     log_info("============== no init =============");

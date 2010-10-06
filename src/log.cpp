@@ -56,7 +56,7 @@ log_t::log_t(bool defaultSetup, const char* name)
   if(defaultSetup)
   {
     //TODO shall it be by default? addLoggerDev(StdErrLoggerDev::getDefault());
-    addLoggerDev(StdOutLoggerDev::getDefault()); //TODO switch it if for release
+    addLoggerDev(StdOutLoggerDev::getDefault()); //TODO switch it off for release
     addLoggerDev(SysLogDev::getDefault());
   }
 }
@@ -209,7 +209,7 @@ void log_t::vlog_generic(int level, int line, const char *file, const char *func
   for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
         it != iDevs.end(); ++it)
   {
-    (*it)->logGeneric(level, line, file, func, fmt, args);
+    (*it)->vlogGeneric(level, line, file, func, fmt, args);
   }
 }
 
@@ -295,12 +295,12 @@ bool LoggerSettings::isDate() const
 
 bool LoggerSettings::isTimeMs() const
 {
-  return (message_format & ETimeMs) && !(message_format & ETimeNs);
+  return (message_format & ETimeMs) && !(message_format & ETimeMicS);
 }
 
-bool LoggerSettings::isTimeNs() const
+bool LoggerSettings::isTimeMicS() const
 {
-  return !(message_format & ETimeMs) && (message_format & ETimeNs);
+  return !(message_format & ETimeMs) && (message_format & ETimeMicS);
 }
 
 bool LoggerSettings::isTime() const
@@ -395,8 +395,8 @@ int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const c
   return current_len + vsnprintf((char*)(str + current_len), buf_len - current_len - 1, fmt, arg);
 }
 
-void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
-                           const char *aFmt, va_list anArgs) const
+void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
+                            const char *aFmt, va_list anArgs) const
 {
   //TODO asser below shall be in another place
   assert(0<=aLevel) ;
@@ -439,19 +439,19 @@ void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char 
     {
       char zone[100] ;
       memset(zone, '\0', 100) ;
-      strncpy(zone, time_tm.tm_zone, 99); //TODO do I need strncmp now?
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " (%s)": "(%s)", zone);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen,
+                                                    addSpace? " (%s)": "(%s)", time_tm.tm_zone);
       addSpace = true;
     }
 
     if(settings().isDate() || settings().isTime())
     {
       const char *fmt = (settings().isDate() && settings().isTime())? "%F %T" : (settings().isDate()? "%F" : "%T" );
-      const int time_length = 32 ;
-      char buffer[time_length+1] ; //TODO rename
-      strftime(buffer, time_length, fmt, &time_tm) ;
+      const int time_length = 32;
+      char time_buf[time_length+1];
+      strftime(time_buf, time_length, fmt, &time_tm);
 
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " %s": "%s", buffer);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " %s": "%s", time_buf);
 
       if(settings().isTime())
       {
@@ -459,7 +459,7 @@ void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char 
         {
           dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", tv.tv_usec/1000);
         }
-        else if(settings().isTimeNs()) //TODO isTimeNs is microseconds... rename later
+        else if(settings().isTimeMicS())
         {
           dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%06ld", tv.tv_usec);
         }
@@ -531,7 +531,7 @@ void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char 
   memset(message, '\0', messageLen);
   vsnprintf(message, messageLen, aFmt, anArgs) ;
 
-  vlogGeneric(aLevel, dateInfo, processInfo, debugInfo, isFullDebugInfo, message);
+  printLog(aLevel, dateInfo, processInfo, debugInfo, isFullDebugInfo, message);
 
 }
 
@@ -580,9 +580,8 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 {
 }
 
-//TODO rename
-void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                                const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
+void FileLoggerDev::printLog( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                              const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
   //TODO rework: create format string for output as in SysLogDev
   bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
@@ -712,15 +711,15 @@ int SysLogDev::syslog_level_id(int level)
   return syslog_names[level] ;
 }
 
-void SysLogDev::vlogGeneric(int aLevel, const char* aDateTimeInfo, const char* aProcessInfo,
+void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aProcessInfo,
                           const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
-  const int fmtLen = 32; //TODO count
+  const int fmtLen = 32;
   char fmt[fmtLen];
   memset(fmt, '\0', fmtLen);
   int fmtCurrentLen = 0;
 
-  const int secondFmtLen = 32; //TODO count
+  const int secondFmtLen = 32;
   char secondFmt[secondFmtLen];
   memset(secondFmt, '\0', secondFmtLen);
   int secondFmtCurrentLen = 0;
