@@ -153,16 +153,16 @@ public:
   virtual ~LoggerDev();
 
   void logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
-                  const char *aFmt, va_list anArgs);
+                  const char *aFmt, va_list anArgs) const;
   void setSettings(const LoggerSettings& aSettings);
 
 protected:
   LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
   virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) = 0;
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const = 0;
   const LoggerSettings& settings() const;
-  int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) __attribute__((format(printf, 5, 6))) ;
-  int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg);
+  int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const __attribute__((format(printf, 5, 6)));
+  int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg) const;
 
 private:
   LoggerSettings iSettings;
@@ -193,9 +193,9 @@ protected:
   FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
 
   virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage);
-  bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo);
-  bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists);
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
+  bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const;
+  bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const;
 
 private:
   FILE *iFp;
@@ -216,6 +216,8 @@ public:
   StdErrLoggerDev(int aVerbosityLevel = DefaultLevel,
                   int aLocationMask = DefaultLocation,
                   int aMessageFormat = DefaultFormat);
+
+  static StdErrLoggerDev* getDefault();
 };
 
 class StdOutLoggerDev : public FileLoggerDev
@@ -232,6 +234,8 @@ public:
   StdOutLoggerDev(int aVerbosityLevel = DefaultLevel,
                   int aLocationMask = DefaultLocation,
                   int aMessageFormat = DefaultFormat);
+
+  static StdOutLoggerDev* getDefault();
 };
 
 
@@ -251,9 +255,11 @@ public:
             int aMessageFormat = DefaultFormat);
   ~SysLogDev();
 
+  static SysLogDev* getDefault();
+
 protected:
   virtual void vlogGeneric( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage);
+                            const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
 
 private:
   static int syslog_level_id(int level);
@@ -268,7 +274,6 @@ struct log_t
   static const char* prgName();
   static const char *level_name(int level);
 
-  log_t();
   void addLoggerDev(LoggerDev* aLoggerDev);
 
   void message(int level) ;
@@ -281,6 +286,7 @@ struct log_t
   void log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
                                                                                     __attribute__((format(printf,6,7)));
 private:
+  log_t(bool defaultSetup);
   ~log_t();
   void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
 

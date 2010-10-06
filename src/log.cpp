@@ -44,16 +44,19 @@ log_t& log_t::logger()
 {
   if(!iLogger)
   {
-    //TODO default settings might be changed here
-    //default name can be taken from /proc/<pid>/cmdline
-    log_init("default");
-    log_info("default init for logger");
+    iLogger = new log_t(true);
   }
   return *iLogger;
 }
 
-log_t::log_t()
+log_t::log_t(bool defaultSetup)
 {
+  if(defaultSetup)
+  {
+    //TODO shall it be by default? addLoggerDev(StdErrLoggerDev::getDefault());
+    addLoggerDev(StdOutLoggerDev::getDefault()); //TODO switch it if for release
+    addLoggerDev(SysLogDev::getDefault());
+  }
 }
 
 log_t::~log_t()
@@ -63,17 +66,9 @@ log_t::~log_t()
 
 void log_t::log_init(const char *name)
 {
+  log_t::prg_name = name;
   delete iLogger;
-  log_t::prg_name = name ;
-  iLogger = new log_t;
-
-  //TODO default loggers must be in auto_ptrs and come outside
-  // below is memory leak
-  // it will be removed soon (kept for debug purpose)
-  iLogger->addLoggerDev(new FileLoggerDev("FileLoggerDev.log")); //TODO debug code
-  iLogger->addLoggerDev(new StdErrLoggerDev); //TODO debug code
-  iLogger->addLoggerDev(new StdOutLoggerDev); //TODO debug code
-  iLogger->addLoggerDev(new SysLogDev); //TODO debug code
+  iLogger = new log_t(false);
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -82,6 +77,7 @@ void log_t::addLoggerDev(LoggerDev* aLoggerDev)
   iDevs.push_front(aLoggerDev);
 }
 
+//TODO search for name if is not set
 const char* log_t::prgName()
 {
   return prg_name;
@@ -344,7 +340,7 @@ LoggerDev::~LoggerDev()
 {
 }
 
-int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...)
+int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const
 {
   va_list args ;
   va_start(args, fmt) ;
@@ -353,13 +349,13 @@ int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const ch
   return ret;
 }
 
-int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg)
+int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg) const
 {
   return current_len + vsnprintf((char*)(str + current_len), buf_len - current_len - 1, fmt, arg);
 }
 
 void LoggerDev::logGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
-                           const char *aFmt, va_list anArgs)
+                           const char *aFmt, va_list anArgs) const
 {
   //TODO asser below shall be in another place
   assert(0<=aLevel) ;
@@ -545,7 +541,7 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 
 //TODO rename
 void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                                const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
+                                const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
   //TODO rework: create format string for output as in SysLogDev
   bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
@@ -579,7 +575,7 @@ void FileLoggerDev::vlogGeneric(int aLevel, const char *aDateTimeInfo, const cha
   fflush(iFp);
 }
 
-bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo)
+bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const
 {
   bool hasDateTimeInfo = (aDateTimeInfo && aDateTimeInfo[0] != 0);
   bool hasProcessInfo = (aProcessInfo && aProcessInfo[0] != 0);
@@ -597,7 +593,7 @@ bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcess
   return (hasDateTimeInfo | hasProcessInfo);
 }
 
-bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists)
+bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const
 {
   bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0); 
 
@@ -620,9 +616,23 @@ bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPref
 
 //================== StdErrLoggerDev ===============
 //TODO move to separate file
+StdErrLoggerDev* StdErrLoggerDev::getDefault()
+{
+  static std::auto_ptr<StdErrLoggerDev> defaultStdErrLoggerDev(new StdErrLoggerDev);
+  return defaultStdErrLoggerDev.get();
+}
+
 StdErrLoggerDev::StdErrLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : FileLoggerDev(stderr, false, aVerbosityLevel, aLocationMask, aMessageFormat)
 {
+}
+
+//================== StdOutLoggerDev ===============
+//TODO move to separate file
+StdOutLoggerDev* StdOutLoggerDev::getDefault()
+{
+  static std::auto_ptr<StdOutLoggerDev> defaultStdOutLoggerDev(new StdOutLoggerDev);
+  return defaultStdOutLoggerDev.get();
 }
 
 StdOutLoggerDev::StdOutLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
@@ -632,6 +642,13 @@ StdOutLoggerDev::StdOutLoggerDev(int aVerbosityLevel, int aLocationMask, int aMe
 
 //================== SysLogDev ===============
 //TODO move to separate file
+
+SysLogDev* SysLogDev::getDefault()
+{
+  static std::auto_ptr<SysLogDev> defaultSysLogDev(new SysLogDev);
+  return defaultSysLogDev.get();
+}
+
 SysLogDev::SysLogDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : LoggerDev(aVerbosityLevel, aLocationMask, aMessageFormat)
 {
@@ -655,7 +672,7 @@ int SysLogDev::syslog_level_id(int level)
 }
 
 void SysLogDev::vlogGeneric(int aLevel, const char* aDateTimeInfo, const char* aProcessInfo,
-                          const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage)
+                          const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
   const int fmtLen = 32; //TODO count
   char fmt[fmtLen];
