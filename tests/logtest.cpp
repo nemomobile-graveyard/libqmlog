@@ -55,23 +55,25 @@ void log_without_init(bool print_start_end_log = true)
 
 void log_with_init()
 {
-  //TODO pseudo code
-  // log_init (current init for a while)
-  const char *log_file = "logtest.log" ;
-  log_t::log_init("logtest") ;
-  log_info("=========== with init ===========");
+  INIT_LOGGER("logtest");
+  ADD_DEBUG_SYSLOG();
+  ADD_STDERR_LOG();
+  ADD_STDOUT_LOG(LOG_LEVEL_INFO);
+  ADD_FILE_LOG("my-logtest.log");
+
+  log_warning("=========== with init ===========");
 
   log_without_init(false);
-  log_info("========== with init done ==========");
+  log_warning("========== with init done ==========");
 }
 
 int main(void)
 {
-  log_info("============= start of logtest =============");
+  log_warning("============= start of logtest =============");
 
   log_with_init();
   log_without_init();
 
-  log_info("============= end of logtest ==============");
+  log_warning("============= end of logtest ==============");
   return 0 ;
 }
