@@ -145,8 +145,6 @@ private:
   int message_format ;
 };
 
-//TODO it shall be static interface to receive times
-// time shall be the same in every logger for the same strings
 class LoggerDev
 {
 public:
@@ -271,8 +269,12 @@ struct log_t
 {
   static log_t& logger();
   static void log_init(const char *name = NULL);
+
   static const char* prgName();
-  static const char *level_name(int level);
+  static const char* level_name(int level);
+  static const struct timeval& tv();
+  static const struct tm& tm();
+  static const struct timespec& ts();
 
   void addLoggerDev(LoggerDev* aLoggerDev);
   void removeLoggerDev(LoggerDev* aLoggerDev);
@@ -291,12 +293,16 @@ private:
   ~log_t();
   void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
   const char* processName() const;
+  void updateTime();
 
 private:
   static const char *prg_name;
   static log_t * iLogger;
   std::list<LoggerDev*> iDevs;
-} ;
+  struct timeval iTv;
+  struct tm iTm;
+  struct timespec iTs;
+};
 
 
 #define INIT_LOGGER(...) log_t::log_init(__VA_ARGS__)

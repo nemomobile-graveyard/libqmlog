@@ -134,6 +134,24 @@ const char *log_t::level_name(int level)
   return names[level] ;
 }
 
+const struct timeval& log_t::tv()
+{
+  assert(iLogger);
+  return iLogger->iTv;
+}
+
+const struct tm& log_t::tm()
+{
+  assert(iLogger);
+  return iLogger->iTm;
+}
+
+const struct timespec& log_t::ts()
+{
+  assert(iLogger);
+  return iLogger->iTs;
+}
+
 void log_t::message(int level)
 {
   message(level, "\x01");
@@ -206,6 +224,8 @@ void log_t::log_failed_assertion(const char *assertion, int line, const char *fi
 
 void log_t::vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args)
 {
+  updateTime();
+
   for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
         it != iDevs.end(); ++it)
   {
@@ -213,6 +233,13 @@ void log_t::vlog_generic(int level, int line, const char *file, const char *func
   }
 }
 
+void log_t::updateTime()
+{
+  clock_gettime(CLOCK_MONOTONIC, &iTs);
+  gettimeofday(&iTv, NULL) ;
+  time_t t = iTv.tv_sec ;
+  localtime_r(&t, &iTm) ;
+}
 
 
 
@@ -414,33 +441,25 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
   {
     if(settings().isMTimer())
     {
-      struct timespec nano;
-      clock_gettime(CLOCK_MONOTONIC, &nano);
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, "%ld", nano.tv_sec);
+      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, "%ld", log_t::ts().tv_sec);
 
       if(settings().isMTimerMs())
       {
-        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", nano.tv_nsec/1000000);
+        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", log_t::ts().tv_nsec/1000000);
       }
       else if(settings().isMTimerNs())
       {
-        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%09ld", nano.tv_nsec);
+        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%09ld", log_t::ts().tv_nsec);
       }
       addSpace = true;
     }
-
-    struct timeval tv ;
-    gettimeofday(&tv, NULL) ;
-    time_t t = tv.tv_sec ;
-    struct tm time_tm ;
-    localtime_r(&t, &time_tm) ;
 
     if(settings().isTzAbbr())
     {
       char zone[100] ;
       memset(zone, '\0', 100) ;
       dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen,
-                                                    addSpace? " (%s)": "(%s)", time_tm.tm_zone);
+                                                    addSpace? " (%s)": "(%s)", log_t::tm().tm_zone);
       addSpace = true;
     }
 
@@ -449,7 +468,7 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
       const char *fmt = (settings().isDate() && settings().isTime())? "%F %T" : (settings().isDate()? "%F" : "%T" );
       const int time_length = 32;
       char time_buf[time_length+1];
-      strftime(time_buf, time_length, fmt, &time_tm);
+      strftime(time_buf, time_length, fmt, &log_t::tm());
 
       dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " %s": "%s", time_buf);
 
@@ -457,11 +476,11 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
       {
         if(settings().isTimeMs())
         {
-          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", tv.tv_usec/1000);
+          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", log_t::tv().tv_usec/1000);
         }
         else if(settings().isTimeMicS())
         {
-          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%06ld", tv.tv_usec);
+          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%06ld", log_t::tv().tv_usec);
         }
       }
       addSpace = true;
