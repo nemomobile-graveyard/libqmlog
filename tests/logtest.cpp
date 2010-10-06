@@ -55,7 +55,7 @@ void log_without_init(bool print_start_end_log = true)
 
 void log_with_init()
 {
-  INIT_LOGGER("logtest");
+  INIT_LOGGER("my-logtest");
   ADD_DEBUG_SYSLOG();
   ADD_STDERR_LOG();
   ADD_STDOUT_LOG(LOG_LEVEL_INFO);

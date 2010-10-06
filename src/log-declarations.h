@@ -270,7 +270,7 @@ private:
 struct log_t
 {
   static log_t& logger();
-  static void log_init(const char *name);
+  static void log_init(const char *name = NULL);
   static const char* prgName();
   static const char *level_name(int level);
 
@@ -287,9 +287,10 @@ struct log_t
   void log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
                                                                                     __attribute__((format(printf,6,7)));
 private:
-  log_t(bool defaultSetup);
+  log_t(bool defaultSetup, const char* name = NULL);
   ~log_t();
   void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
+  const char* processName() const;
 
 private:
   static const char *prg_name;
@@ -298,7 +299,7 @@ private:
 } ;
 
 
-#define INIT_LOGGER(NAME) log_t::log_init(NAME)
+#define INIT_LOGGER(...) log_t::log_init(__VA_ARGS__)
 
 #define ADD_SYSLOG(...) std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
                         log_t::logger().addLoggerDev(sys_log_ptr.get())

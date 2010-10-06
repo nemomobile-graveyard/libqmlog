@@ -37,7 +37,7 @@
 #include <qm/log>
 
 
-const char *log_t::prg_name = "<anonymous>";
+const char *log_t::prg_name = NULL;
 log_t *log_t::iLogger = NULL;
 
 log_t& log_t::logger()
@@ -49,8 +49,10 @@ log_t& log_t::logger()
   return *iLogger;
 }
 
-log_t::log_t(bool defaultSetup)
+log_t::log_t(bool defaultSetup, const char* name)
 {
+  log_t::prg_name = name?: iLogger->processName();
+
   if(defaultSetup)
   {
     //TODO shall it be by default? addLoggerDev(StdErrLoggerDev::getDefault());
@@ -64,11 +66,10 @@ log_t::~log_t()
   iLogger = NULL;
 }
 
-void log_t::log_init(const char *name)
+void log_t::log_init(const char* name)
 {
-  log_t::prg_name = name;
   delete iLogger;
-  iLogger = new log_t(false);
+  iLogger = new log_t(false, name);
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -83,7 +84,40 @@ void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
   iDevs.remove(aLoggerDev);
 }
 
-//TODO search for name if is not set
+const char* log_t::processName() const
+{
+  const int procNameLen = 64;
+  static char procName[procNameLen];
+  memset(procName, '\0', procNameLen);
+  strncpy(procName, "default", procNameLen - 1);
+
+  const int cmdFileNameLen = 256;
+  char cmdFileName[cmdFileNameLen];
+  memset(cmdFileName, '\0', cmdFileNameLen);
+  snprintf(cmdFileName, procNameLen-1, "/proc/%d/cmdline", getpid());
+
+  FILE* cmdLineFile = fopen(cmdFileName, "r");
+
+  if(cmdLineFile)
+  {
+    const int cmdLen = 256;
+    char cmd[cmdLen];
+    memset(cmd, '\0', cmdLen);
+
+    fscanf(cmdLineFile, "%s", cmd);
+    fclose(cmdLineFile);
+
+    const char* lastSlash = strrchr(cmd, '/');
+
+    if(lastSlash)
+    {
+      strncpy(procName, ++lastSlash, procNameLen - 1);
+    }
+  }
+
+  return procName;
+}
+
 const char* log_t::prgName()
 {
   return prg_name;
