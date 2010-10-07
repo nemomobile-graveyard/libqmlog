@@ -277,10 +277,10 @@ public:
   {
       DefaultLevel = LOG_LEVEL_DEBUG
     , DefaultLocation = LOG_MAX_LOCATION
-    , DefaultFormat =   LoggerSettings::EMTimerMs | LoggerSettings::ETzAbbr
-                      | LoggerSettings::EDate | LoggerSettings::ETimeMs
-                      | LoggerSettings::ETzSymLink | LoggerSettings::EProcessInfo 
-                      | LoggerSettings::EDebugInfo | LoggerSettings::EMessage
+    , DefaultFormat =   LoggerSettings::EMTimerMs   | LoggerSettings::ETzAbbr
+                      | LoggerSettings::EDate       | LoggerSettings::ETimeMs
+                      | LoggerSettings::ETzSymLink  | LoggerSettings::EProcessInfo 
+                      | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage
                       | LoggerSettings::EWordWrap
   };
 
@@ -414,8 +414,10 @@ private:
 #define ADD_SYSLOG(...) std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
                         log_t::logger().addLoggerDev(sys_log_ptr.get())
 
-#define ADD_DEBUG_SYSLOG() std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(LOG_LEVEL_DEBUG)); \
-                        log_t::logger().addLoggerDev(sys_log_ptr.get())
+#define ADD_DEBUG_SYSLOG() \
+  std::auto_ptr<SysLogDev> sys_log_ptr( new SysLogDev(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+                                        SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)); \
+  log_t::logger().addLoggerDev(sys_log_ptr.get())
 
 #define ADD_STDERR_LOG(...) std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
                         log_t::logger().addLoggerDev(stderr_log_ptr.get())
