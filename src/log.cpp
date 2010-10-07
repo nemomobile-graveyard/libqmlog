@@ -408,20 +408,6 @@ LoggerDev::~LoggerDev()
   log_t::logger().removeLoggerDev(this);
 }
 
-int LoggerDev::snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const
-{
-  va_list args ;
-  va_start(args, fmt) ;
-  int ret = vsnprintfappend(str, buf_len, current_len, fmt, args);
-  va_end(args) ;
-  return ret;
-}
-
-int LoggerDev::vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg) const
-{
-  return current_len + vsnprintf((char*)(str + current_len), buf_len - current_len - 1, fmt, arg);
-}
-
 void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
                             const char *aFmt, va_list anArgs) const
 {
@@ -432,55 +418,47 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
     return;
 
   const int dateInfoLen = 256;
-  char dateInfo[dateInfoLen];
-  memset(dateInfo, '\0', dateInfoLen);
-  int dateInfoCurrentLen = 0;
+  SmartBuffer<dateInfoLen> dateInfo;
   bool addSpace = false;
 
   if(settings().isDateTimeInfo())
   {
     if(settings().isMTimer())
     {
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, "%ld", log_t::ts().tv_sec);
+      dateInfo.append("%ld", log_t::ts().tv_sec);
 
       if(settings().isMTimerMs())
       {
-        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", log_t::ts().tv_nsec/1000000);
+        dateInfo.append(".%03ld", log_t::ts().tv_nsec/1000000);
       }
       else if(settings().isMTimerNs())
       {
-        dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%09ld", log_t::ts().tv_nsec);
+        dateInfo.append(".%09ld", log_t::ts().tv_nsec);
       }
       addSpace = true;
     }
 
     if(settings().isTzAbbr())
     {
-      char zone[100] ;
-      memset(zone, '\0', 100) ;
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen,
-                                                    addSpace? " (%s)": "(%s)", log_t::tm().tm_zone);
+      dateInfo.append(addSpace? " (%s)": "(%s)", log_t::tm().tm_zone);
       addSpace = true;
     }
 
     if(settings().isDate() || settings().isTime())
     {
-      const char *fmt = (settings().isDate() && settings().isTime())? "%F %T" : (settings().isDate()? "%F" : "%T" );
-      const int time_length = 32;
-      char time_buf[time_length+1];
-      strftime(time_buf, time_length, fmt, &log_t::tm());
-
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace? " %s": "%s", time_buf);
+      const char *fmt = (settings().isDate() && settings().isTime())? (addSpace? " %F %T":"%F %T") : 
+                        (settings().isDate()? (addSpace? " %F": "%F"): (addSpace? " %T": "%T"));
+      dateInfo.appendTm(fmt, log_t::tm());
 
       if(settings().isTime())
       {
         if(settings().isTimeMs())
         {
-          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%03ld", log_t::tv().tv_usec/1000);
+          dateInfo.append(".%03ld", log_t::tv().tv_usec/1000);
         }
         else if(settings().isTimeMicS())
         {
-          dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, ".%06ld", log_t::tv().tv_usec);
+          dateInfo.append(".%06ld", log_t::tv().tv_usec);
         }
       }
       addSpace = true;
@@ -507,57 +485,53 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
         }
       }
 
-      dateInfoCurrentLen = snprintfappend(dateInfo, dateInfoLen, dateInfoCurrentLen, addSpace?  " \'%s\'":"\'%s\'", tzLink);
+      dateInfo.append(addSpace?  " \'%s\'":"\'%s\'", tzLink);
     }
+
+    addSpace = false;
   }
-  addSpace = false;
 
   const int processInfoLen = 64;
-  char processInfo[processInfoLen];
-  memset(processInfo, '\0', processInfoLen);
-  int processInfoCurrentLen = 0;
+  SmartBuffer<processInfoLen> processInfo;
 
   if(settings().isProcessInfo())
   {
     if(settings().isName())
     {
-      processInfoCurrentLen = snprintfappend(processInfo, processInfoLen, processInfoCurrentLen, "%s", log_t::prgName());
+      processInfo.append("%s", log_t::prgName());
     }
 
     if(settings().isPid())
     {
-      processInfoCurrentLen = snprintfappend(processInfo, processInfoLen, processInfoCurrentLen, "(%d)", getpid());
+      processInfo.append("(%d)", getpid());
     }
   }
 
   const int debugInfoLen = 1024;
-  char debugInfo[debugInfoLen];
-  memset(debugInfo, '\0', debugInfoLen);
-  int debugInfoCurrentLen = 0;
+  SmartBuffer<debugInfoLen> debugInfo;
   bool isFullDebugInfo = false;
 
   if(settings().isDebugInfo() && settings().isLocationShown(aLevel))
   {
     if(settings().isFileLine() && aLine > 0 && aFile)
     {
-      debugInfoCurrentLen = snprintfappend(debugInfo, debugInfoLen, debugInfoCurrentLen, "%s:%d", aFile, aLine);
+      debugInfo.append("%s:%d", aFile, aLine);
       addSpace = true;
     }
 
     if(settings().isFunc() && aFunc)
     {
-      debugInfoCurrentLen = snprintfappend(debugInfo, debugInfoLen, debugInfoCurrentLen, addSpace? " in %s": "in %s", aFunc);
+      debugInfo.append(addSpace? " in %s": "in %s", aFunc);
     }
 
     isFullDebugInfo = (aLine > 0 && aFile && aFunc) && (settings().isFileLine() && settings().isFunc());
   }
 
   const int messageLen = 1024;
-  char message[messageLen];
-  memset(message, '\0', messageLen);
-  vsnprintf(message, messageLen, aFmt, anArgs) ;
+  SmartBuffer<messageLen> message;
+  message.vappend(aFmt, anArgs);
 
-  printLog(aLevel, dateInfo, processInfo, debugInfo, isFullDebugInfo, message);
+  printLog(aLevel, dateInfo(), processInfo(), debugInfo(), isFullDebugInfo, message());
 
 }
 
@@ -741,14 +715,10 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
                           const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
   const int fmtLen = 32;
-  char fmt[fmtLen];
-  memset(fmt, '\0', fmtLen);
-  int fmtCurrentLen = 0;
+  SmartBuffer<fmtLen> fmt;
 
   const int secondFmtLen = 32;
-  char secondFmt[secondFmtLen];
-  memset(secondFmt, '\0', secondFmtLen);
-  int secondFmtCurrentLen = 0;
+  SmartBuffer<secondFmtLen> secondFmt;
 
 
   bool addSpace = false;
@@ -759,40 +729,36 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
 
   if(hasDateTimeInfo)
   {
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "[%%s]");
+    fmt.append("[%%s]");
     addSpace = true;
   }
   else
   {
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s");
+    fmt.append("%%s");
   }
 
   if(hasProcessInfo)
   {
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, addSpace? " [%%s]": "%%s:");
+    fmt.append(addSpace? " [%%s]": "%%s:");
     addSpace = true;
   }
   else
   {
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s");
+    fmt.append("%%s");
   }
 
-  strncpy(secondFmt, fmt, secondFmtLen);
-  secondFmtCurrentLen = fmtCurrentLen;
+  secondFmt.append(fmt());
 
   if(hasDebugInfo)
   {
     //TODO is it possible to move "at" into LoggerDev::logGeneric() now?
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, 
-                                        settings().isFileLine()?  (addSpace? " %%s at %%s": "%%s at %%s"):
-                                                                  (addSpace? " %%s %%s": "%%s %%s"));
-    fmtCurrentLen = snprintfappend( fmt, fmtLen, fmtCurrentLen, 
-                                    hasMessage? ((aIsFullDebugInfo && settings().isWordWrap())? ":": ": %%s"): ".");
+    fmt.append(settings().isFileLine()?  (addSpace? " %%s at %%s": "%%s at %%s"): (addSpace? " %%s %%s": "%%s %%s"));
+    fmt.append(hasMessage? ((aIsFullDebugInfo && settings().isWordWrap())? ":": ": %%s"): ".");
   }
   else
   {
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, "%%s%%s");
-    fmtCurrentLen = snprintfappend(fmt, fmtLen, fmtCurrentLen, (hasMessage && addSpace)? " %%s":"%%s");
+    fmt.append("%%s%%s");
+    fmt.append((hasMessage && addSpace)? " %%s":"%%s");
   }
 
   if(!(hasDateTimeInfo || hasProcessInfo || hasDebugInfo || hasMessage))
@@ -801,17 +767,17 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
   }
   else if(aIsFullDebugInfo && settings().isWordWrap())
   {
-    syslog(LOG_DAEMON | syslog_level_id(aLevel), fmt,  aDateTimeInfo, aProcessInfo,
+    syslog(LOG_DAEMON | syslog_level_id(aLevel), fmt(),  aDateTimeInfo, aProcessInfo,
                                                             log_t::level_name(aLevel), aDebugInfo);
     if(hasMessage)
     {
-      secondFmtCurrentLen = snprintfappend(secondFmt, secondFmtLen, secondFmtCurrentLen, "-> %%s");
-      syslog(LOG_DAEMON | syslog_level_id(aLevel), secondFmt, aDateTimeInfo, aProcessInfo, aMessage);
+      secondFmt.append("-> %%s");
+      syslog(LOG_DAEMON | syslog_level_id(aLevel), secondFmt(), aDateTimeInfo, aProcessInfo, aMessage);
     }
   }
   else
   {
-    syslog(LOG_DAEMON | syslog_level_id(aLevel), fmt,  aDateTimeInfo, aProcessInfo,
+    syslog(LOG_DAEMON | syslog_level_id(aLevel), fmt(),  aDateTimeInfo, aProcessInfo,
                                  hasDebugInfo? log_t::level_name(aLevel): "", aDebugInfo, aMessage);
   }
 }

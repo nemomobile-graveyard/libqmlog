@@ -22,6 +22,7 @@
 #define MAEMO_QMLOG_LOG_DECLARATION_H
 
 #include <cstdio>
+#include <cstdarg>
 #include <sys/time.h>
 #include <ctime>
 
@@ -147,6 +148,63 @@ private:
   int message_format ;
 };
 
+template <int LEN>
+class SmartBuffer
+{
+public:
+  SmartBuffer() : iCurrentLen(0)
+  {
+    memset(iBuffer, '\0', LEN);
+  }
+
+  int length() const
+  {
+    return (int)LEN;
+  }
+
+  bool isFull() const
+  {
+    return (iCurrentLen >= (LEN - 1));
+  }
+
+  int emptySpace() const
+  {
+    return (LEN - iCurrentLen - 1);
+  }
+
+  const char* operator()() const
+  {
+    return iBuffer;
+  }
+
+  bool append(const char * aFmt, ...) __attribute__((format(printf, 2, 3)))
+  {
+    va_list args ;
+    va_start(args, aFmt) ;
+    bool ret = vappend(aFmt, args);
+    va_end(args) ;
+    return ret;
+  }
+
+  bool vappend(const char * aFmt, va_list anArg)
+  {
+    int written = vsnprintf((char*)(iBuffer + iCurrentLen), emptySpace(), aFmt, anArg);
+    iCurrentLen += written;
+    return (written > 0);
+  }
+
+  bool appendTm(const char * aFmt, const struct tm& aTm)
+  {
+    int written = strftime((char*)(iBuffer + iCurrentLen), emptySpace(), aFmt, &aTm);
+    iCurrentLen += written;
+    return (written > 0);
+  }
+
+private:
+  char iBuffer[LEN];
+  int iCurrentLen;
+};
+
 class LoggerDev
 {
 public:
@@ -161,8 +219,6 @@ protected:
   virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                         const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const = 0;
   const LoggerSettings& settings() const;
-  int snprintfappend(char * str, int buf_len, int current_len, const char * fmt, ...) const __attribute__((format(printf, 5, 6)));
-  int vsnprintfappend(char * str, int buf_len, int current_len, const char * fmt, va_list arg) const;
 
 private:
   LoggerSettings iSettings;
