@@ -55,8 +55,7 @@ log_t::log_t(bool defaultSetup, const char* name)
 
   if(defaultSetup)
   {
-    //TODO shall it be by default? addLoggerDev(StdErrLoggerDev::getDefault());
-    addLoggerDev(StdOutLoggerDev::getDefault()); //TODO switch it off for release
+    addLoggerDev(StdErrLoggerDev::getDefault());
     addLoggerDev(SysLogDev::getDefault());
   }
 }
