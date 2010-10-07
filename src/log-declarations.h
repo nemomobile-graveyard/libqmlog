@@ -177,6 +177,30 @@ public:
     return iBuffer;
   }
 
+  void clear()
+  {
+    if(iCurrentLen)
+    {
+      iCurrentLen = 0;
+      memset(iBuffer, '\0', LEN);
+    }
+  }
+
+  bool print(const char * aFmt, ...) __attribute__((format(printf, 2, 3)))
+  {
+    va_list args ;
+    va_start(args, aFmt) ;
+    bool ret = vprint(aFmt, args);
+    va_end(args) ;
+    return ret;
+  }
+
+  bool vprint(const char * aFmt, va_list anArgs)
+  {
+    clear();
+    return vappend(aFmt, anArgs);
+  }
+
   bool append(const char * aFmt, ...) __attribute__((format(printf, 2, 3)))
   {
     va_list args ;
@@ -186,18 +210,40 @@ public:
     return ret;
   }
 
-  bool vappend(const char * aFmt, va_list anArg)
+  bool vappend(const char * aFmt, va_list anArgs)
   {
-    int written = vsnprintf((char*)(iBuffer + iCurrentLen), emptySpace(), aFmt, anArg);
+    int written = vsnprintf(ptrToEnd(), emptySpace(), aFmt, anArgs);
     iCurrentLen += written;
     return (written > 0);
   }
 
   bool appendTm(const char * aFmt, const struct tm& aTm)
   {
-    int written = strftime((char*)(iBuffer + iCurrentLen), emptySpace(), aFmt, &aTm);
+    int written = strftime(ptrToEnd(), emptySpace(), aFmt, &aTm);
     iCurrentLen += written;
     return (written > 0);
+  }
+
+  bool copy(const char * aStr, int aCount)
+  {
+    clear();
+    if(aCount > emptySpace())
+      return false;
+
+    strncpy(iBuffer, aStr, aCount);
+    iCurrentLen += aCount;
+    return true;
+  }
+
+  bool copy(const SmartBuffer& aSmartBuffer)
+  {
+    return copy(aSmartBuffer(), aSmartBuffer.iCurrentLen);
+  }
+
+private:
+  char* ptrToEnd()
+  {
+    return (iBuffer + iCurrentLen);
   }
 
 private:

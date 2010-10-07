@@ -87,16 +87,14 @@ void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
 const char* log_t::processName() const
 {
   const int procNameLen = 64;
-  static char procName[procNameLen];
-  memset(procName, '\0', procNameLen);
-  strncpy(procName, "default", procNameLen - 1);
+  static SmartBuffer<procNameLen> procName;
+  procName.print("default");
 
   const int cmdFileNameLen = 256;
-  char cmdFileName[cmdFileNameLen];
-  memset(cmdFileName, '\0', cmdFileNameLen);
-  snprintf(cmdFileName, procNameLen-1, "/proc/%d/cmdline", getpid());
+  SmartBuffer<cmdFileNameLen> cmdFileName;
+  cmdFileName.print("/proc/%d/cmdline", getpid());
 
-  FILE* cmdLineFile = fopen(cmdFileName, "r");
+  FILE* cmdLineFile = fopen(cmdFileName(), "r");
 
   if(cmdLineFile)
   {
@@ -111,11 +109,11 @@ const char* log_t::processName() const
 
     if(lastSlash)
     {
-      strncpy(procName, ++lastSlash, procNameLen - 1);
+      procName.print(++lastSlash);
     }
   }
 
-  return procName;
+  return procName();
 }
 
 const char* log_t::prgName()
@@ -529,7 +527,7 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
 
   const int messageLen = 1024;
   SmartBuffer<messageLen> message;
-  message.vappend(aFmt, anArgs);
+  message.vprint(aFmt, anArgs);
 
   printLog(aLevel, dateInfo(), processInfo(), debugInfo(), isFullDebugInfo, message());
 
@@ -747,7 +745,7 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
     fmt.append("%%s");
   }
 
-  secondFmt.append(fmt());
+  secondFmt.copy(fmt);
 
   if(hasDebugInfo)
   {
