@@ -22,6 +22,8 @@
 #define MAEMO_QMLOG_LOG_DECLARATION_H
 
 #include <cstdio>
+#include <sys/time.h>
+#include <ctime>
 
 #include <memory>
 #include <list>
