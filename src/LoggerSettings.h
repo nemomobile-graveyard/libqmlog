@@ -1,0 +1,110 @@
+/*=======================================================================\
+#                                                                        $
+#   Copyright (C) 2010 Nokia Corporation.                                $
+#                                                                        $
+#   Author: Ilya Dogolazky <ilya.dogolazky@nokia.com>                    $
+#                                                                        $
+#     This file is part of qmlog                                         $
+#                                                                        $
+#     qmlog is free software; you can redistribute it and/or modify      $
+#     it under the terms of the GNU Lesser General Public License        $
+#     version 2.1 as published by the Free Software Foundation.          $
+#                                                                        $
+#     qmlog is distributed in the hope that it will be useful, but       $
+#     WITHOUT ANY WARRANTY;  without even the implied warranty  of       $
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               $
+#     See the GNU Lesser General Public License  for more details.       $
+#                                                                        $
+#   You should have received a copy of the GNU  Lesser General Public    $
+#   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
+\_______________________________________________________________________*/
+#ifndef MAEMO_QMLOG_LOGGER_SETTINGS_H
+#define MAEMO_QMLOG_LOGGER_SETTINGS_H
+
+#include <qm/log-declarations.h>
+
+
+#define LOG_OUTPUT_WORD_WRAP       0
+#define LOG_OUTPUT_MESSAGE         1
+#define LOG_OUTPUT_FILE_LINE       2
+#define LOG_OUTPUT_FUNC            3
+#define LOG_OUTPUT_PID             4
+#define LOG_OUTPUT_NAME            5
+#define LOG_OUTPUT_TZ_SYM_LINK     6
+#define LOG_OUTPUT_TIME_LOW_BIT    7
+#define LOG_OUTPUT_TIME_HIGH_BIT   8
+#define LOG_OUTPUT_DATE            9
+#define LOG_OUTPUT_TZ_ABBR          10
+#define LOG_OUTPUT_MTIMER_LOW_BIT  11
+#define LOG_OUTPUT_MTIMER_HIGH_BIT 12
+
+
+class LoggerSettings
+{
+public:
+  enum
+  {
+      EMTimerMs = LOG_BIT_MASK(LOG_OUTPUT_MTIMER_HIGH_BIT)
+    , EMTimerNs = LOG_BIT_MASK(LOG_OUTPUT_MTIMER_LOW_BIT)
+    , EMTimer = EMTimerMs | EMTimerNs //both ms and ns bits means no ms and ns
+    , ETzAbbr = LOG_BIT_MASK(LOG_OUTPUT_TZ_ABBR)
+    , EDate = LOG_BIT_MASK(LOG_OUTPUT_DATE)
+    , ETimeMs = LOG_BIT_MASK(LOG_OUTPUT_TIME_HIGH_BIT)
+    , ETimeMicS = LOG_BIT_MASK(LOG_OUTPUT_TIME_LOW_BIT)
+    , ETime = ETimeMs | ETimeMicS //both ms and MicS bits means no ms and MicS
+    , ETzSymLink = LOG_BIT_MASK(LOG_OUTPUT_TZ_SYM_LINK)
+    , EDateTimeInfo = EMTimer | ETzAbbr | EDate | ETime | ETzSymLink
+
+    , EName = LOG_BIT_MASK(LOG_OUTPUT_NAME)
+    , EPid = LOG_BIT_MASK(LOG_OUTPUT_PID)
+    , EProcessInfo = EName | EPid
+
+    , EFunc = LOG_BIT_MASK(LOG_OUTPUT_FUNC)
+    , EFileLine = LOG_BIT_MASK(LOG_OUTPUT_FILE_LINE)
+    , EDebugInfo = EFunc | EFileLine
+
+    , EMessage = LOG_BIT_MASK(LOG_OUTPUT_MESSAGE)
+
+    , EWordWrap = LOG_BIT_MASK(LOG_OUTPUT_WORD_WRAP)
+  };
+
+public:
+  LoggerSettings(int new_verbosity_level, int new_location_mask, int new_message_format);
+
+  void setVerbosityLevel(int new_verbosity_level);
+  void setLocationMask(int new_location_mask);
+  void setMessageFormat(int new_message_format);
+
+  bool isLogShown(int aLevel) const;
+  bool isLocationShown(int aLevel) const;
+
+  bool isMTimerMs() const;
+  bool isMTimerNs() const;
+  bool isMTimer() const;
+  bool isTzAbbr() const;
+  bool isDate() const;
+  bool isTimeMs() const;
+  bool isTimeMicS() const;
+  bool isTime() const;
+  bool isTzSymLink() const;
+  bool isDateTimeInfo() const;
+
+  bool isName() const;
+  bool isPid() const;
+  bool isProcessInfo() const;
+
+  bool isFunc() const;
+  bool isFileLine() const;
+  bool isDebugInfo() const;
+
+  bool isMessage() const;
+
+  bool isWordWrap() const;
+
+private:
+  int verbosity_level ;
+  int location_mask ;
+  int message_format ;
+};
+
+#endif

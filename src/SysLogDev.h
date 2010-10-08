@@ -18,43 +18,36 @@
 #   You should have received a copy of the GNU  Lesser General Public    $
 #   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
 \_______________________________________________________________________*/
-#ifndef MAEMO_QMLOG_LOG_DECLARATIONS_H
-#define MAEMO_QMLOG_LOG_DECLARATIONSH
+#ifndef MAEMO_QMLOG_SYSLOG_DEV_H
+#define MAEMO_QMLOG_SYSLOG_DEV_H
 
-/* Verbosity levels, the upper boundary could be set at compile time.
- *
- * 0 INTERNAL --- produced by failing log_assert(...)
- * 1 CRITICAL --- programm can continue, but some stuff is lost/can't be done
- * 2 ERROR --- incorrect input
- * 3 WARNING --- tolerable input, should be corrected
- * 4 INFO --- just some blah blah
- * 5 DEBUG --- verbose info
- *
- */
+#include <qm/LoggerDev.h>
 
-#define LOG_LEVEL_INTERNAL 0
-#define LOG_LEVEL_CRITICAL 1
-#define LOG_LEVEL_ERROR    2
-#define LOG_LEVEL_WARNING  3
-#define LOG_LEVEL_INFO     4
-#define LOG_LEVEL_DEBUG    5
 
-#ifndef LOG_MAX_LEVEL
-#define LOG_MAX_LEVEL 5
-#endif
+class SysLogDev : public LoggerDev
+{
+public:
+  enum
+  {
+      DefaultLevel = LOG_LEVEL_WARNING
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EMessage
+  };
 
-#define LOG_BIT_MASK(bit) (1 << bit)
+public:
+  SysLogDev(int aVerbosityLevel = DefaultLevel,
+            int aLocationMask = DefaultLocation,
+            int aMessageFormat = DefaultFormat);
+  ~SysLogDev();
 
-#ifndef LOG_MAX_LOCATION
-#define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
-#endif
+  static SysLogDev* getDefault();
 
-#ifndef LOG_ASSERTION
-#define LOG_ASSERTION 1
-#endif
+protected:
+  virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
 
-#if LOG_MAX_LEVEL<LOG_LEVEL_INTERNAL || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
-#error LOG_MAX_LEVEL outside of [0..5]
-#endif
+private:
+  static int syslog_level_id(int level);
+};
 
 #endif

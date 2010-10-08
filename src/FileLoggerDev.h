@@ -18,43 +18,46 @@
 #   You should have received a copy of the GNU  Lesser General Public    $
 #   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
 \_______________________________________________________________________*/
-#ifndef MAEMO_QMLOG_LOG_DECLARATIONS_H
-#define MAEMO_QMLOG_LOG_DECLARATIONSH
+#ifndef MAEMO_QMLOG_FILE_LOGGER_DEV_H
+#define MAEMO_QMLOG_FILE_LOGGER_DEV_H
 
-/* Verbosity levels, the upper boundary could be set at compile time.
- *
- * 0 INTERNAL --- produced by failing log_assert(...)
- * 1 CRITICAL --- programm can continue, but some stuff is lost/can't be done
- * 2 ERROR --- incorrect input
- * 3 WARNING --- tolerable input, should be corrected
- * 4 INFO --- just some blah blah
- * 5 DEBUG --- verbose info
- *
- */
+#include <cstdio>
 
-#define LOG_LEVEL_INTERNAL 0
-#define LOG_LEVEL_CRITICAL 1
-#define LOG_LEVEL_ERROR    2
-#define LOG_LEVEL_WARNING  3
-#define LOG_LEVEL_INFO     4
-#define LOG_LEVEL_DEBUG    5
+#include <qm/LoggerDev.h>
 
-#ifndef LOG_MAX_LEVEL
-#define LOG_MAX_LEVEL 5
-#endif
 
-#define LOG_BIT_MASK(bit) (1 << bit)
+class FileLoggerDev : public LoggerDev
+{
+public:
+  enum
+  {
+      DefaultLevel = LOG_LEVEL_DEBUG
+    , DefaultLocation = LOG_MAX_LOCATION
+    , DefaultFormat =   LoggerSettings::EMTimerMs   | LoggerSettings::ETzAbbr
+                      | LoggerSettings::EDate       | LoggerSettings::ETimeMs
+                      | LoggerSettings::ETzSymLink  | LoggerSettings::EProcessInfo 
+                      | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage
+                      | LoggerSettings::EWordWrap
+  };
 
-#ifndef LOG_MAX_LOCATION
-#define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
-#endif
+public:
+  FileLoggerDev(const char *aFileName,
+                int aVerbosityLevel = DefaultLevel,
+                int aLocationMask = DefaultLocation,
+                int aMessageFormat = DefaultFormat);
+  ~FileLoggerDev();
 
-#ifndef LOG_ASSERTION
-#define LOG_ASSERTION 1
-#endif
+protected:
+  FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
 
-#if LOG_MAX_LEVEL<LOG_LEVEL_INTERNAL || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
-#error LOG_MAX_LEVEL outside of [0..5]
-#endif
+  virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
+                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
+  bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const;
+  bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const;
+
+private:
+  FILE *iFp;
+  bool iIsFpOwner;
+};
 
 #endif

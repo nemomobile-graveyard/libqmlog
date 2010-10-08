@@ -54,7 +54,7 @@ void log_with_init()
 {
   INIT_LOGGER("my-logtest");
   ADD_DEBUG_SYSLOG();
-  ADD_STDERR_LOG();
+  ADD_STDERR_LOG(FileLoggerDev::DefaultLevel, FileLoggerDev::DefaultLocation, FileLoggerDev::DefaultFormat);
   ADD_STDOUT_LOG(LOG_LEVEL_INFO);
   ADD_FILE_LOG("my-logtest.log");
 
