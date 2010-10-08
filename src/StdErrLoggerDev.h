@@ -26,6 +26,7 @@
 
 class StdErrLoggerDev : public FileLoggerDev
 {
+public:
   enum
   {
       DefaultLevel = LOG_LEVEL_WARNING

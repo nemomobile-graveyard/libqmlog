@@ -26,6 +26,7 @@
 
 class StdOutLoggerDev : public FileLoggerDev
 {
+public:
   enum
   {
       DefaultLevel = LOG_LEVEL_DEBUG

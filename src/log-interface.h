@@ -25,27 +25,32 @@
 #include <qm/log-declarations.h>
 
 
-#define INIT_LOGGER(...) log_t::log_init(__VA_ARGS__)
+#define INIT_LOGGER(...) \
+  log_t::log_init(__VA_ARGS__)
 
-#define ADD_SYSLOG(...) std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
-                        log_t::logger().addLoggerDev(sys_log_ptr.get())
-
-#define ADD_DEBUG_SYSLOG() \
-  std::auto_ptr<SysLogDev> sys_log_ptr( new SysLogDev(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
-                                        SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)); \
+#define ADD_SYSLOG(...) \
+  std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
   log_t::logger().addLoggerDev(sys_log_ptr.get())
 
-#define ADD_STDERR_LOG(...) std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
-                        log_t::logger().addLoggerDev(stderr_log_ptr.get())
+#define ADD_DEBUG_SYSLOG() \
+  ADD_SYSLOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+             SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
 
-#define ADD_DEBUG_STDERR_LOG() std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(LOG_LEVEL_DEBUG)); \
-                        log_t::logger().addLoggerDev(stderr_log_ptr.get())
+#define ADD_STDERR_LOG(...) \
+  std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
+  log_t::logger().addLoggerDev(stderr_log_ptr.get())
 
-#define ADD_STDOUT_LOG(...) std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
-                        log_t::logger().addLoggerDev(stdout_log_ptr.get())
+#define ADD_DEBUG_STDERR_LOG() \
+  ADD_STDERR_LOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+             StdErrLoggerDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
 
-#define ADD_FILE_LOG(NAME, ...) std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
-                        log_t::logger().addLoggerDev(file_log_ptr.get())
+#define ADD_STDOUT_LOG(...) \
+  std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
+  log_t::logger().addLoggerDev(stdout_log_ptr.get())
+
+#define ADD_FILE_LOG(NAME, ...) \
+  std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
+  log_t::logger().addLoggerDev(file_log_ptr.get())
 
 
 #define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
