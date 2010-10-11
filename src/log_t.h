@@ -66,6 +66,8 @@ private:
   struct timeval iTv;
   struct tm iTm;
   struct timespec iTs;
+
+  friend class LoggerRemover;
 };
 
 #endif

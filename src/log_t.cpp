@@ -27,6 +27,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <algorithm>
+#include <memory>
 
 #include "log_t.h"
 #include "log-declarations.h"
@@ -36,6 +37,25 @@
 #include "SysLogDev.h"
 
 
+class LoggerRemover
+{
+public:
+  static void create()
+  {
+    if(!log_t::iLogger)
+    {
+      static std::auto_ptr<LoggerRemover> remover(new LoggerRemover);
+    }
+  }
+
+  LoggerRemover(){}
+
+  ~LoggerRemover()
+  { 
+    delete log_t::iLogger;
+  }
+};
+
 const char *log_t::prg_name = NULL;
 log_t *log_t::iLogger = NULL;
 
@@ -43,6 +63,7 @@ log_t& log_t::logger()
 {
   if(!iLogger)
   {
+    LoggerRemover::create();
     iLogger = new log_t(true);
   }
   return *iLogger;
@@ -66,6 +87,7 @@ log_t::~log_t()
 
 void log_t::log_init(const char* name)
 {
+  LoggerRemover::create();
   delete iLogger;
   iLogger = new log_t(false, name);
 }
