@@ -28,6 +28,12 @@
 #define INIT_LOGGER(...) \
   log_t::log_init(__VA_ARGS__)
 
+#define RESTORE_DEFAULT_DEVS() \
+  log_t::logger().setRestoreDefaultDevs()
+
+#define DO_NOT_RESTORE_DEFAULT_DEVS() \
+  log_t::logger().clearRestoreDefaultDevs()
+
 #define ADD_SYSLOG(...) \
   std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
   log_t::logger().addLoggerDev(sys_log_ptr.get())

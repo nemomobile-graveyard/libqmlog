@@ -44,6 +44,9 @@ struct log_t
   void addLoggerDev(LoggerDev* aLoggerDev);
   void removeLoggerDev(LoggerDev* aLoggerDev);
 
+  void setRestoreDefaultDevs();
+  void clearRestoreDefaultDevs();
+
   void setTempSettings(LoggerSettings* aSettings);
   void removeTempSettings(LoggerSettings* aSettings);
 
@@ -57,15 +60,17 @@ struct log_t
   void log_failed_assertion(const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
                                                                                     __attribute__((format(printf,6,7)));
 private:
-  log_t(bool defaultSetup, const char* name = NULL);
+  log_t(bool defaultSetup, bool aRestoreDefaultDevs, const char* name = NULL);
   ~log_t();
   void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
   const char* processName() const;
   void updateTime();
+  void createDefaultDevs();
 
 private:
   static const char *prg_name;
   static log_t * iLogger;
+  bool iRestoreDefaultDevs;
   std::list<LoggerDev*> iDevs;
   std::list<LoggerSettings*> iTempSettings;
   struct timeval iTv;

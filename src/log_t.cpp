@@ -64,19 +64,19 @@ log_t& log_t::logger()
   if(!iLogger)
   {
     LoggerRemover::create();
-    iLogger = new log_t(true);
+    iLogger = new log_t(true, true);
   }
   return *iLogger;
 }
 
-log_t::log_t(bool defaultSetup, const char* name)
+log_t::log_t(bool defaultSetup, bool aRestoreDefaultDevs, const char* name)
+  : iRestoreDefaultDevs(aRestoreDefaultDevs)
 {
   log_t::prg_name = name?: iLogger->processName();
 
   if(defaultSetup)
   {
-    addLoggerDev(StdErrLoggerDev::getDefault());
-    addLoggerDev(SysLogDev::getDefault());
+    createDefaultDevs();
   }
 }
 
@@ -87,9 +87,26 @@ log_t::~log_t()
 
 void log_t::log_init(const char* name)
 {
+  bool notFirstInstance = (iLogger);
   LoggerRemover::create();
   delete iLogger;
-  iLogger = new log_t(false, name);
+  iLogger = new log_t(false, notFirstInstance, name);
+}
+
+void log_t::setRestoreDefaultDevs()
+{
+  iRestoreDefaultDevs = true;
+}
+
+void log_t::clearRestoreDefaultDevs()
+{
+  iRestoreDefaultDevs = false;
+}
+
+void log_t::createDefaultDevs()
+{
+  addLoggerDev(StdErrLoggerDev::getDefault());
+  addLoggerDev(SysLogDev::getDefault());
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -116,6 +133,11 @@ void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
   }
 
   iDevs.remove(aLoggerDev);
+
+  if(iRestoreDefaultDevs && iDevs.size() == 0)
+  {
+    createDefaultDevs();
+  }
 }
 
 void log_t::setTempSettings(LoggerSettings* aSettings)
