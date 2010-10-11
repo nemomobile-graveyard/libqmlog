@@ -32,6 +32,17 @@ void do_log()
   test_log_macro_with_fmt(format);
 }
 
+void log_change_settings_locally_suppress()
+{
+  log_critical("After this log you shall not see any log from log_change_settings_locally_suppress()");
+
+  SET_TEMP_LOG_SETTINGS_SUPPRESS_LOGGING();
+
+  log_critical("==== temp suppress output settings ====");
+  do_log();
+  log_critical("== temp suppress output settings done =");
+}
+
 void log_change_settings_locally_second()
 {
   ADD_FILE_LOG("my-logtest-minor.log");
@@ -42,7 +53,8 @@ void log_change_settings_locally_second()
 
   log_critical("==== temp minor output settings ====");
   do_log();
-  log_critical("=== temp minor output settings done ===");
+  log_change_settings_locally_suppress();
+  log_critical("== temp minor output settings done =");
 }
 
 void log_change_settings_locally()

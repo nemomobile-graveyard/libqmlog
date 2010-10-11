@@ -63,6 +63,13 @@
     | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
     | LoggerSettings::EWordWrap)
 
+#define SET_TEMP_LOG_SETTINGS_SUPPRESS_LOGGING() \
+  SET_TEMP_LOG_SETTINGS(LOG_LEVEL_INTERNAL, LOG_MAX_LOCATION, \
+      LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
+    | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
+    | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
+    | LoggerSettings::EWordWrap)
+
 
 #define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
 
