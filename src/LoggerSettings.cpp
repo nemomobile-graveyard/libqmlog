@@ -22,7 +22,9 @@
 #define _BSD_SOURCE
 
 #include <cassert>
+
 #include "LoggerSettings.h"
+#include "log_t.h"
 
 
 LoggerSettings::LoggerSettings(int new_verbosity_level, int new_location_mask, int new_message_format)
@@ -30,6 +32,49 @@ LoggerSettings::LoggerSettings(int new_verbosity_level, int new_location_mask, i
   , location_mask(new_location_mask)
   , message_format(new_message_format)
 {
+}
+
+LoggerSettings::LoggerSettings(const LoggerSettings& aLoggerSettings)
+  : verbosity_level(aLoggerSettings.verbosity_level)
+  , location_mask(aLoggerSettings.location_mask)
+  , message_format(aLoggerSettings.message_format)
+{
+}
+
+LoggerSettings::~LoggerSettings()
+{
+  restore();
+  log_t::logger().removeTempSettings(this);
+}
+
+const LoggerSettings& LoggerSettings::operator= (const LoggerSettings& aLoggerSettings)
+{
+  verbosity_level = aLoggerSettings.verbosity_level;
+  location_mask = aLoggerSettings.location_mask;
+  message_format = aLoggerSettings.message_format;
+}
+
+void LoggerSettings::restore()
+{
+  for(  RestoreList::iterator it = iRestoreList.begin();
+        it != iRestoreList.end(); ++it)
+  {
+    *((*it).first) = (*it).second;
+  }
+}
+
+void LoggerSettings::addToRestoreList(LoggerSettings* aSettings)
+{
+  assert(aSettings);
+  assert(iRestoreList.find(aSettings) == iRestoreList.end());
+  LoggerSettings tempSettings(*aSettings);
+  iRestoreList[aSettings] = tempSettings;
+}
+
+void LoggerSettings::removeFromRestoreList(LoggerSettings* aSettings)
+{
+  assert(aSettings);
+  iRestoreList.erase(aSettings);
 }
 
 void LoggerSettings::setVerbosityLevel(int new_verbosity_level)

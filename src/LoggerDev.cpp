@@ -171,9 +171,15 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
 
 }
 
-void LoggerDev::setSettings(const LoggerSettings& aSettings)
+void LoggerDev::setTempSettings(LoggerSettings& aSettings)
 {
+  aSettings.addToRestoreList(&iSettings);
   iSettings = aSettings;
+}
+
+void LoggerDev::removeTempSettings(LoggerSettings& aSettings)
+{
+  aSettings.removeFromRestoreList(&iSettings);
 }
 
 const LoggerSettings& LoggerDev::settings() const

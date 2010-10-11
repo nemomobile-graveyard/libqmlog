@@ -26,8 +26,9 @@
 #include <list>
 #include <cstdarg>
 
-
 class LoggerDev;
+class LoggerSettings;
+
 
 struct log_t
 {
@@ -42,6 +43,9 @@ struct log_t
 
   void addLoggerDev(LoggerDev* aLoggerDev);
   void removeLoggerDev(LoggerDev* aLoggerDev);
+
+  void setTempSettings(LoggerSettings* aSettings);
+  void removeTempSettings(LoggerSettings* aSettings);
 
   void message(int level) ;
   void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4)));
@@ -63,6 +67,7 @@ private:
   static const char *prg_name;
   static log_t * iLogger;
   std::list<LoggerDev*> iDevs;
+  std::list<LoggerSettings*> iTempSettings;
   struct timeval iTv;
   struct tm iTm;
   struct timespec iTs;

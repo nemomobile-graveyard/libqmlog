@@ -95,13 +95,46 @@ void log_t::log_init(const char* name)
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
 {
   assert(aLoggerDev);
+
+  for(  std::list<LoggerSettings*>::reverse_iterator it = iTempSettings.rbegin();
+        it != iTempSettings.rend(); ++it)
+  {
+    aLoggerDev->setTempSettings(**it);
+  }
+
   iDevs.push_front(aLoggerDev);
 }
 
 void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
 {
   assert(aLoggerDev);
+
+  for(  std::list<LoggerSettings*>::reverse_iterator it = iTempSettings.rbegin();
+        it != iTempSettings.rend(); ++it)
+  {
+    aLoggerDev->removeTempSettings(**it);
+  }
+
   iDevs.remove(aLoggerDev);
+}
+
+void log_t::setTempSettings(LoggerSettings* aSettings)
+{
+  assert(aSettings);
+
+  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+        it != iDevs.end(); ++it)
+  {
+    (*it)->setTempSettings(*aSettings);
+  }
+
+  iTempSettings.push_front(aSettings);
+}
+
+void log_t::removeTempSettings(LoggerSettings* aSettings)
+{
+  assert(aSettings);
+  iTempSettings.remove(aSettings);
 }
 
 const char* log_t::processName() const

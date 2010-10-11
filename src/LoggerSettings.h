@@ -21,6 +21,8 @@
 #ifndef MAEMO_QMLOG_LOGGER_SETTINGS_H
 #define MAEMO_QMLOG_LOGGER_SETTINGS_H
 
+#include <map>
+
 #include <qm/log-declarations.h>
 
 
@@ -69,7 +71,15 @@ public:
   };
 
 public:
-  LoggerSettings(int new_verbosity_level, int new_location_mask, int new_message_format);
+  LoggerSettings(int new_verbosity_level = 0, int new_location_mask = 0, int new_message_format = 0);
+  LoggerSettings(const LoggerSettings& aLoggerSettings);
+  virtual ~LoggerSettings();
+
+  const LoggerSettings& operator= (const LoggerSettings& aLoggerSettings);
+
+  void restore();
+  void addToRestoreList(LoggerSettings* aSettings);
+  void removeFromRestoreList(LoggerSettings* aSettings);
 
   void setVerbosityLevel(int new_verbosity_level);
   void setLocationMask(int new_location_mask);
@@ -102,9 +112,13 @@ public:
   bool isWordWrap() const;
 
 private:
-  int verbosity_level ;
-  int location_mask ;
-  int message_format ;
+  typedef std::map<LoggerSettings*, LoggerSettings> RestoreList;
+
+private:
+  int verbosity_level;
+  int location_mask;
+  int message_format;
+  RestoreList iRestoreList;
 };
 
 #endif

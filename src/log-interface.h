@@ -52,8 +52,20 @@
   std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
   log_t::logger().addLoggerDev(file_log_ptr.get())
 
+#define SET_TEMP_LOG_SETTINGS(VERBOSITY, LOCATION_MASK, FORMAT) \
+  std::auto_ptr<LoggerSettings> settings_log_ptr(new LoggerSettings(VERBOSITY, LOCATION_MASK, FORMAT)); \
+  log_t::logger().setTempSettings(settings_log_ptr.get())
+
+#define SET_TEMP_LOG_SETTINGS_MAX_DEBUG() \
+  SET_TEMP_LOG_SETTINGS(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+      LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
+    | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
+    | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
+    | LoggerSettings::EWordWrap)
+
 
 #define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
+
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_CRITICAL
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_CRITICAL)

@@ -33,7 +33,8 @@ public:
 
   void vlogGeneric( int aLevel, int aLine, const char *aFile, const char *aFunc,
                     const char *aFmt, va_list anArgs) const;
-  void setSettings(const LoggerSettings& aSettings);
+  void setTempSettings(LoggerSettings& aSettings);
+  void removeTempSettings(LoggerSettings& aSettings);
 
 protected:
   LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
