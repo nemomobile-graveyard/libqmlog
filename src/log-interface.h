@@ -25,59 +25,74 @@
 #include <qm/log-declarations.h>
 
 
-#define INIT_LOGGER(...) \
-  log_t::log_init(__VA_ARGS__)
+#if LOG_MAX_LEVEL > LOG_LEVEL_NO_LOGS
+  #define INIT_LOGGER(...) \
+    log_t::log_init(__VA_ARGS__)
 
-#define RESTORE_DEFAULT_DEVS() \
-  log_t::logger().setRestoreDefaultDevs()
+  #define RESTORE_DEFAULT_DEVS() \
+    log_t::logger().setRestoreDefaultDevs()
 
-#define DO_NOT_RESTORE_DEFAULT_DEVS() \
-  log_t::logger().clearRestoreDefaultDevs()
+  #define DO_NOT_RESTORE_DEFAULT_DEVS() \
+    log_t::logger().clearRestoreDefaultDevs()
 
-#define ADD_SYSLOG(...) \
-  std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
-  log_t::logger().addLoggerDev(sys_log_ptr.get())
+  #define ADD_SYSLOG(...) \
+    std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
+    log_t::logger().addLoggerDev(sys_log_ptr.get())
 
-#define ADD_DEBUG_SYSLOG() \
-  ADD_SYSLOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
-             SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
+  #define ADD_DEBUG_SYSLOG() \
+    ADD_SYSLOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+              SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
 
-#define ADD_STDERR_LOG(...) \
-  std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
-  log_t::logger().addLoggerDev(stderr_log_ptr.get())
+  #define ADD_STDERR_LOG(...) \
+    std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
+    log_t::logger().addLoggerDev(stderr_log_ptr.get())
 
-#define ADD_DEBUG_STDERR_LOG() \
-  ADD_STDERR_LOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
-             StdErrLoggerDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
+  #define ADD_DEBUG_STDERR_LOG() \
+    ADD_STDERR_LOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+              StdErrLoggerDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
 
-#define ADD_STDOUT_LOG(...) \
-  std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
-  log_t::logger().addLoggerDev(stdout_log_ptr.get())
+  #define ADD_STDOUT_LOG(...) \
+    std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
+    log_t::logger().addLoggerDev(stdout_log_ptr.get())
 
-#define ADD_FILE_LOG(NAME, ...) \
-  std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
-  log_t::logger().addLoggerDev(file_log_ptr.get())
+  #define ADD_FILE_LOG(NAME, ...) \
+    std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
+    log_t::logger().addLoggerDev(file_log_ptr.get())
 
-#define SET_TEMP_LOG_SETTINGS(VERBOSITY, LOCATION_MASK, FORMAT) \
-  std::auto_ptr<LoggerSettings> settings_log_ptr(new LoggerSettings(VERBOSITY, LOCATION_MASK, FORMAT)); \
-  log_t::logger().setTempSettings(settings_log_ptr.get())
+  #define SET_TEMP_LOG_SETTINGS(VERBOSITY, LOCATION_MASK, FORMAT) \
+    std::auto_ptr<LoggerSettings> settings_log_ptr(new LoggerSettings(VERBOSITY, LOCATION_MASK, FORMAT)); \
+    log_t::logger().setTempSettings(settings_log_ptr.get())
 
-#define SET_TEMP_LOG_SETTINGS_MAX_DEBUG() \
-  SET_TEMP_LOG_SETTINGS(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
-      LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
-    | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
-    | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
-    | LoggerSettings::EWordWrap)
+  #define SET_TEMP_LOG_SETTINGS_MAX_DEBUG() \
+    SET_TEMP_LOG_SETTINGS(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
+        LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
+      | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
+      | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
+      | LoggerSettings::EWordWrap)
 
-#define SET_TEMP_LOG_SETTINGS_SUPPRESS_LOGGING() \
-  SET_TEMP_LOG_SETTINGS(LOG_LEVEL_INTERNAL, LOG_MAX_LOCATION, \
-      LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
-    | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
-    | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
-    | LoggerSettings::EWordWrap)
+  #define SET_TEMP_LOG_SETTINGS_SUPPRESS_LOGGING() \
+    SET_TEMP_LOG_SETTINGS(LOG_LEVEL_INTERNAL, LOG_MAX_LOCATION, \
+        LoggerSettings::EMTimerNs     | LoggerSettings::ETzAbbr     | LoggerSettings::EDate \
+      | LoggerSettings::ETimeMicS     | LoggerSettings::ETzSymLink \
+      | LoggerSettings::EProcessInfo  | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage \
+      | LoggerSettings::EWordWrap)
 
-
-#define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
+  #define LOG_LOCATION __LINE__,__FILE__,__PRETTY_FUNCTION__
+#else
+  #define INIT_LOGGER(...)
+  #define RESTORE_DEFAULT_DEVS()
+  #define DO_NOT_RESTORE_DEFAULT_DEVS()
+  #define ADD_SYSLOG(...)
+  #define ADD_DEBUG_SYSLOG()
+  #define ADD_STDERR_LOG(...)
+  #define ADD_DEBUG_STDERR_LOG()
+  #define ADD_STDOUT_LOG(...)
+  #define ADD_FILE_LOG(NAME, ...)
+  #define SET_TEMP_LOG_SETTINGS(VERBOSITY, LOCATION_MASK, FORMAT)
+  #define SET_TEMP_LOG_SETTINGS_MAX_DEBUG()
+  #define SET_TEMP_LOG_SETTINGS_SUPPRESS_LOGGING()
+  #define LOG_LOCATION
+#endif
 
 
 #if LOG_MAX_LEVEL >= LOG_LEVEL_CRITICAL

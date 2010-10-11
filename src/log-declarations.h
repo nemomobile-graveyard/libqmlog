@@ -23,24 +23,26 @@
 
 /* Verbosity levels, the upper boundary could be set at compile time.
  *
- * 0 INTERNAL --- produced by failing log_assert(...)
- * 1 CRITICAL --- programm can continue, but some stuff is lost/can't be done
- * 2 ERROR --- incorrect input
- * 3 WARNING --- tolerable input, should be corrected
- * 4 INFO --- just some blah blah
- * 5 DEBUG --- verbose info
+ * -1  NO LOGS --- all log macro are disabled
+ *  0  INTERNAL --- produced by failing log_assert(...)
+ *  1  CRITICAL --- programm can continue, but some stuff is lost/can't be done
+ *  2  ERROR --- incorrect input
+ *  3  WARNING --- tolerable input, should be corrected
+ *  4  INFO --- just some blah blah
+ *  5  DEBUG --- verbose info
  *
  */
 
-#define LOG_LEVEL_INTERNAL 0
-#define LOG_LEVEL_CRITICAL 1
-#define LOG_LEVEL_ERROR    2
-#define LOG_LEVEL_WARNING  3
-#define LOG_LEVEL_INFO     4
-#define LOG_LEVEL_DEBUG    5
+#define LOG_LEVEL_NO_LOGS  -1
+#define LOG_LEVEL_INTERNAL  0
+#define LOG_LEVEL_CRITICAL  1
+#define LOG_LEVEL_ERROR     2
+#define LOG_LEVEL_WARNING   3
+#define LOG_LEVEL_INFO      4
+#define LOG_LEVEL_DEBUG     5
 
 #ifndef LOG_MAX_LEVEL
-#define LOG_MAX_LEVEL 5
+#define LOG_MAX_LEVEL LOG_LEVEL_DEBUG
 #endif
 
 #define LOG_BIT_MASK(bit) (1 << bit)
@@ -53,8 +55,8 @@
 #define LOG_ASSERTION 1
 #endif
 
-#if LOG_MAX_LEVEL<LOG_LEVEL_INTERNAL || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
-#error LOG_MAX_LEVEL outside of [0..5]
+#if LOG_MAX_LEVEL<LOG_LEVEL_NO_LOGS || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
+#error LOG_MAX_LEVEL outside of [-1..5]
 #endif
 
 #endif
