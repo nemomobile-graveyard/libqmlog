@@ -36,9 +36,11 @@
 #define LOG_OUTPUT_TIME_LOW_BIT    7
 #define LOG_OUTPUT_TIME_HIGH_BIT   8
 #define LOG_OUTPUT_DATE            9
-#define LOG_OUTPUT_TZ_ABBR          10
+#define LOG_OUTPUT_TZ_ABBR         10
 #define LOG_OUTPUT_MTIMER_LOW_BIT  11
 #define LOG_OUTPUT_MTIMER_HIGH_BIT 12
+
+#define LOG_OUTPUT_MAX_BIT         13
 
 
 class LoggerSettings
@@ -80,10 +82,6 @@ public:
   void restore();
   void addToRestoreList(LoggerSettings* aSettings);
   void removeFromRestoreList(LoggerSettings* aSettings);
-
-  void setVerbosityLevel(int new_verbosity_level);
-  void setLocationMask(int new_location_mask);
-  void setMessageFormat(int new_message_format);
 
   bool isLogShown(int aLevel) const;
   bool isLocationShown(int aLevel) const;

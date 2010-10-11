@@ -32,6 +32,9 @@ LoggerSettings::LoggerSettings(int new_verbosity_level, int new_location_mask, i
   , location_mask(new_location_mask)
   , message_format(new_message_format)
 {
+  assert(LOG_LEVEL_INTERNAL <= new_verbosity_level && new_verbosity_level <= LOG_LEVEL_DEBUG);
+  assert(new_location_mask < LOG_BIT_MASK(LOG_LEVEL_DEBUG + 1));
+  assert(new_message_format < LOG_BIT_MASK(LOG_OUTPUT_MAX_BIT));
 }
 
 LoggerSettings::LoggerSettings(const LoggerSettings& aLoggerSettings)
@@ -75,24 +78,6 @@ void LoggerSettings::removeFromRestoreList(LoggerSettings* aSettings)
 {
   assert(aSettings);
   iRestoreList.erase(aSettings);
-}
-
-void LoggerSettings::setVerbosityLevel(int new_verbosity_level)
-{
-  //TODO insert assert here
-  verbosity_level = new_verbosity_level;
-}
-
-void LoggerSettings::setLocationMask(int new_location_mask)
-{
-  //TODO insert assert here
-  location_mask = new_location_mask;
-}
-
-void LoggerSettings::setMessageFormat(int new_message_format)
-{
-  //TODO insert assert here
-  message_format = new_message_format;
 }
 
 bool LoggerSettings::isLogShown(int aLevel) const

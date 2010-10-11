@@ -47,7 +47,6 @@ LoggerDev::~LoggerDev()
 void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char *aFunc,
                             const char *aFmt, va_list anArgs) const
 {
-  //TODO asser below shall be in another place
   assert(0<=aLevel) ;
   assert(aLevel<=LOG_MAX_LEVEL) ;
   if(!settings().isLogShown(aLevel))

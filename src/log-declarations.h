@@ -45,7 +45,7 @@
 #define LOG_MAX_LEVEL LOG_LEVEL_DEBUG
 #endif
 
-#define LOG_BIT_MASK(bit) (1 << bit)
+#define LOG_BIT_MASK(bit) (1 << (bit))
 
 #ifndef LOG_MAX_LOCATION
 #define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
