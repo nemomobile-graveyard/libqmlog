@@ -39,8 +39,6 @@ public:
   StdOutLoggerDev(int aVerbosityLevel = DefaultLevel,
                   int aLocationMask = DefaultLocation,
                   int aMessageFormat = DefaultFormat);
-
-  static StdOutLoggerDev* getDefault();
 };
 
 #endif

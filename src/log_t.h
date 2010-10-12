@@ -41,6 +41,8 @@ struct log_t
   static const struct tm& tm();
   static const struct timespec& ts();
 
+  void addPermanentLoggerDev(LoggerDev* aLoggerDev);
+
   void addLoggerDev(LoggerDev* aLoggerDev);
   void removeLoggerDev(LoggerDev* aLoggerDev);
 

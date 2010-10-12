@@ -35,12 +35,26 @@
 
 LoggerDev::LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : iSettings(aVerbosityLevel, aLocationMask, aMessageFormat)
+  , iIsPermanent(false)
 {
 }
 
 LoggerDev::~LoggerDev()
 {
-  log_t::logger().removeLoggerDev(this);
+  if(!isPermanent())
+  {
+    log_t::logger().removeLoggerDev(this);
+  }
+}
+
+bool LoggerDev::isPermanent() const
+{
+  return iIsPermanent;
+}
+
+void LoggerDev::setPermanent(bool aIsPermanent)
+{
+  iIsPermanent = aIsPermanent;
 }
 
 //TODO split to shorter functions

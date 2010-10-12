@@ -82,6 +82,15 @@ log_t::log_t(bool defaultSetup, bool aRestoreDefaultDevs, const char* name)
 
 log_t::~log_t()
 {
+  for(  std::list<LoggerDev*>::iterator it = iDevs.begin();
+        it != iDevs.end(); ++it)
+  {
+    if((*it) && (*it)->isPermanent())
+    {
+      delete (*it);
+    }
+  }
+
   iLogger = NULL;
 }
 
@@ -105,8 +114,16 @@ void log_t::clearRestoreDefaultDevs()
 
 void log_t::createDefaultDevs()
 {
-  addLoggerDev(StdErrLoggerDev::getDefault());
-  addLoggerDev(SysLogDev::getDefault());
+  addPermanentLoggerDev(new StdErrLoggerDev);
+  addPermanentLoggerDev(new SysLogDev);
+}
+
+void log_t::addPermanentLoggerDev(LoggerDev* aLoggerDev)
+{
+  assert(aLoggerDev);
+
+  aLoggerDev->setPermanent(true);
+  addLoggerDev(aLoggerDev);
 }
 
 void log_t::addLoggerDev(LoggerDev* aLoggerDev)
@@ -125,6 +142,7 @@ void log_t::addLoggerDev(LoggerDev* aLoggerDev)
 void log_t::removeLoggerDev(LoggerDev* aLoggerDev)
 {
   assert(aLoggerDev);
+  assert(!aLoggerDev->isPermanent());
 
   for(  std::list<LoggerSettings*>::reverse_iterator it = iTempSettings.rbegin();
         it != iTempSettings.rend(); ++it)

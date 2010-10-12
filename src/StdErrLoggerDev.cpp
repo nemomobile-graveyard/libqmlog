@@ -26,12 +26,6 @@
 #include "StdErrLoggerDev.h"
 
 
-StdErrLoggerDev* StdErrLoggerDev::getDefault()
-{
-  static std::auto_ptr<StdErrLoggerDev> defaultStdErrLoggerDev(new StdErrLoggerDev);
-  return defaultStdErrLoggerDev.get();
-}
-
 StdErrLoggerDev::StdErrLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : FileLoggerDev(stderr, false, aVerbosityLevel, aLocationMask, aMessageFormat)
 {

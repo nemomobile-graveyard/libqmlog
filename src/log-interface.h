@@ -35,6 +35,9 @@
   #define DO_NOT_RESTORE_DEFAULT_DEVS() \
     log_t::logger().clearRestoreDefaultDevs()
 
+  #define ADD_PERMANENT_SYSLOG(...) \
+    log_t::logger().addPermanentLoggerDev(new SysLogDev(__VA_ARGS__))
+
   #define ADD_SYSLOG(...) \
     std::auto_ptr<SysLogDev> sys_log_ptr(new SysLogDev(__VA_ARGS__)); \
     log_t::logger().addLoggerDev(sys_log_ptr.get())
@@ -42,6 +45,9 @@
   #define ADD_DEBUG_SYSLOG() \
     ADD_SYSLOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
               SysLogDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
+
+  #define ADD_PERMANENT_STDERR_LOG(...) \
+    log_t::logger().addPermanentLoggerDev(new StdErrLoggerDev(__VA_ARGS__))
 
   #define ADD_STDERR_LOG(...) \
     std::auto_ptr<StdErrLoggerDev> stderr_log_ptr(new StdErrLoggerDev(__VA_ARGS__)); \
@@ -51,9 +57,15 @@
     ADD_STDERR_LOG(LOG_LEVEL_DEBUG, LOG_MAX_LOCATION, \
               StdErrLoggerDev::DefaultFormat | LoggerSettings::EDebugInfo| LoggerSettings::EWordWrap)
 
+  #define ADD_PERMANENT_STDOUT_LOG(...) \
+    log_t::logger().addPermanentLoggerDev(new StdOutLoggerDev(__VA_ARGS__))
+
   #define ADD_STDOUT_LOG(...) \
     std::auto_ptr<StdOutLoggerDev> stdout_log_ptr(new StdOutLoggerDev(__VA_ARGS__)); \
     log_t::logger().addLoggerDev(stdout_log_ptr.get())
+
+  #define ADD_PERMANENT_FILE_LOG(NAME, ...) \
+    log_t::logger().addPermanentLoggerDev(new FileLoggerDev(NAME, ## __VA_ARGS__))
 
   #define ADD_FILE_LOG(NAME, ...) \
     std::auto_ptr<FileLoggerDev> file_log_ptr(new FileLoggerDev(NAME, ## __VA_ARGS__)); \
@@ -82,11 +94,15 @@
   #define INIT_LOGGER(...)
   #define RESTORE_DEFAULT_DEVS()
   #define DO_NOT_RESTORE_DEFAULT_DEVS()
+  #define ADD_PERMANENT_SYSLOG(...)
   #define ADD_SYSLOG(...)
   #define ADD_DEBUG_SYSLOG()
+  #define ADD_PERMANENT_STDERR_LOG(...)
   #define ADD_STDERR_LOG(...)
   #define ADD_DEBUG_STDERR_LOG()
+  #define ADD_PERMANENT_STDOUT_LOG(...)
   #define ADD_STDOUT_LOG(...)
+  #define ADD_PERMANENT_FILE_LOG(NAME, ...)
   #define ADD_FILE_LOG(NAME, ...)
   #define SET_TEMP_LOG_SETTINGS(VERBOSITY, LOCATION_MASK, FORMAT)
   #define SET_TEMP_LOG_SETTINGS_MAX_DEBUG()

@@ -40,8 +40,6 @@ public:
             int aMessageFormat = DefaultFormat);
   ~SysLogDev();
 
-  static SysLogDev* getDefault();
-
 protected:
   virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                         const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;

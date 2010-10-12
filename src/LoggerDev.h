@@ -31,6 +31,9 @@ class LoggerDev
 public:
   virtual ~LoggerDev();
 
+  bool isPermanent() const;
+  void setPermanent(bool aIsPermanent);
+
   void vlogGeneric( int aLevel, int aLine, const char *aFile, const char *aFunc,
                     const char *aFmt, va_list anArgs) const;
   void setTempSettings(LoggerSettings& aSettings);
@@ -44,6 +47,7 @@ protected:
 
 private:
   LoggerSettings iSettings;
+  bool iIsPermanent;
 };
 
 #endif

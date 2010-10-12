@@ -91,6 +91,7 @@ void log_change_settings_locally()
 
 void log_without_init()
 {
+  ADD_PERMANENT_FILE_LOG("my-permanent-logtest.log");
   log_warning("============== no init =============");
 
   do_log();

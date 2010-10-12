@@ -26,12 +26,6 @@
 #include "StdOutLoggerDev.h"
 
 
-StdOutLoggerDev* StdOutLoggerDev::getDefault()
-{
-  static std::auto_ptr<StdOutLoggerDev> defaultStdOutLoggerDev(new StdOutLoggerDev);
-  return defaultStdOutLoggerDev.get();
-}
-
 StdOutLoggerDev::StdOutLoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : FileLoggerDev(stdout, false, aVerbosityLevel, aLocationMask, aMessageFormat)
 {

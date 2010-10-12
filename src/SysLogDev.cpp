@@ -30,12 +30,6 @@
 #include "SmartBuffer.h"
 
 
-SysLogDev* SysLogDev::getDefault()
-{
-  static std::auto_ptr<SysLogDev> defaultSysLogDev(new SysLogDev);
-  return defaultSysLogDev.get();
-}
-
 SysLogDev::SysLogDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat)
   : LoggerDev(aVerbosityLevel, aLocationMask, aMessageFormat)
 {
