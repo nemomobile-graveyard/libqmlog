@@ -95,7 +95,7 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
 
     if(settings().isDate() || settings().isTime())
     {
-      const char *fmt = (settings().isDate() && settings().isTime())? (addSpace? " %F %T":"%F %T") : 
+      const char *fmt = (settings().isDate() && settings().isTime())? (addSpace? " %F %T":"%F %T") :
                         (settings().isDate()? (addSpace? " %F": "%F"): (addSpace? " %T": "%T"));
       dateInfo.appendTm(fmt, log_t::tm());
 

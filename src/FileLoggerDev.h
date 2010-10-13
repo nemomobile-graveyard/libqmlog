@@ -35,7 +35,7 @@ public:
     , DefaultLocation = LOG_MAX_LOCATION
     , DefaultFormat =   LoggerSettings::EMTimerMs   | LoggerSettings::ETzAbbr
                       | LoggerSettings::EDate       | LoggerSettings::ETimeMs
-                      | LoggerSettings::ETzSymLink  | LoggerSettings::EProcessInfo 
+                      | LoggerSettings::ETzSymLink  | LoggerSettings::EProcessInfo
                       | LoggerSettings::EDebugInfo  | LoggerSettings::EMessage
                       | LoggerSettings::EWordWrap
   };

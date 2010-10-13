@@ -51,7 +51,7 @@ public:
   LoggerRemover(){}
 
   ~LoggerRemover()
-  { 
+  {
     delete log_t::iLogger;
   }
 };
@@ -298,7 +298,7 @@ void log_t::log_failed_assertion(const char *assertion, int line, const char *fi
 
   bool message_follows = (fmt[0] != 0);
 
-  message(LOG_LEVEL_INTERNAL, line, file, func, "Assertion failed: %s%s.", 
+  message(LOG_LEVEL_INTERNAL, line, file, func, "Assertion failed: %s%s.",
                             assertion, message_follows? ". Detailed info follows": "");
 
   if(message_follows)

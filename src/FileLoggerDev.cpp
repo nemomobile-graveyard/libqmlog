@@ -116,7 +116,7 @@ bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPref
 {
   if(!iFp) return false;
 
-  bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0); 
+  bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0);
 
   fprintf(iFp, (hasDebugInfo && settings().isFileLine())? (aPrefixExists? " %s at": "%s at"):
                                                           (aPrefixExists? " %s":"%s"), log_t::level_name(aLevel));
