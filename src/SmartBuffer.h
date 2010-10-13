@@ -93,15 +93,19 @@ public:
 
   bool vappend(const char * aFmt, va_list anArgs)
   {
+    if(isFull()) return false;
+
     int written = vsnprintf(ptrToEnd(), emptySpace(), aFmt, anArgs);
-    iCurrentLen += written;
+    updateCurrentLen(written);
     return (written > 0);
   }
 
   bool appendTm(const char * aFmt, const struct tm& aTm)
   {
+    if(isFull()) return false;
+
     int written = strftime(ptrToEnd(), emptySpace(), aFmt, &aTm);
-    iCurrentLen += written;
+    updateCurrentLen(written);
     return (written > 0);
   }
 
@@ -112,7 +116,7 @@ public:
       return false;
 
     strncpy(iBuffer, aStr, aCount);
-    iCurrentLen += aCount;
+    updateCurrentLen(aCount);
     return true;
   }
 
@@ -125,6 +129,12 @@ private:
   char* ptrToEnd()
   {
     return (iBuffer + iCurrentLen);
+  }
+
+  void updateCurrentLen(int aLenToAdd)
+  {
+    int sEmptySpace = emptySpace();
+    iCurrentLen += (aLenToAdd < sEmptySpace) ? aLenToAdd : sEmptySpace;
   }
 
 private:
