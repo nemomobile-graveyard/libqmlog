@@ -25,6 +25,7 @@
 
 #include "FileLoggerDev.h"
 #include "log_t.h"
+#include "log-interface.h"
 
 
 FileLoggerDev::FileLoggerDev(const char *aFileName, int aVerbosityLevel, int aLocationMask, int aMessageFormat)
@@ -34,6 +35,7 @@ FileLoggerDev::FileLoggerDev(const char *aFileName, int aVerbosityLevel, int aLo
 {
   assert(aFileName);
   iFp = fopen(aFileName, "aw");
+  if(!iFp) log_warning("Failed to create file %s for file logger. Logger disabled.", aFileName);
   iIsFpOwner = iFp;
 }
 
@@ -51,11 +53,13 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
   , iFp(aFp)
   , iIsFpOwner(aTakeOwnership)
 {
+  if(!iFp) log_warning("Null file descriptor is received by file logger protected constructor. Logger disabled.");
 }
 
 void FileLoggerDev::printLog( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
                               const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
 {
+  if(!iFp) return;
   //TODO rework: create format string for output as in SysLogDev
   bool hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);
   bool hasDebugInfo = vlogDebugInfo(aLevel, aDebugInfo, hasPrefix);
@@ -90,6 +94,8 @@ void FileLoggerDev::printLog( int aLevel, const char *aDateTimeInfo, const char*
 
 bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const
 {
+  if(!iFp) return false;
+
   bool hasDateTimeInfo = (aDateTimeInfo && aDateTimeInfo[0] != 0);
   bool hasProcessInfo = (aProcessInfo && aProcessInfo[0] != 0);
 
@@ -108,6 +114,8 @@ bool FileLoggerDev::vlogPrefixes(const char *aDateTimeInfo, const char* aProcess
 
 bool FileLoggerDev::vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const
 {
+  if(!iFp) return false;
+
   bool hasDebugInfo = (aDebugInfo && aDebugInfo[0] != 0); 
 
   fprintf(iFp, (hasDebugInfo && settings().isFileLine())? (aPrefixExists? " %s at": "%s at"):
