@@ -2,6 +2,11 @@ VERSION = 0.0.4
 TEMPLATE=lib
 QT -= gui
 
+TARGET = qmlog
+INSTALLS = target devheaders prf
+
+INCLUDEPATH += ../H
+
 SOURCES += LoggerSettings.cpp
 SOURCES += LoggerDev.cpp
 SOURCES += FileLoggerDev.cpp
@@ -10,11 +15,9 @@ SOURCES += StdOutLoggerDev.cpp
 SOURCES += SysLogDev.cpp
 SOURCES += log_t.cpp
 
-INCLUDEPATH += ../H
-
-TARGET = qmlog
 target.path = /usr/lib
 
+devheaders.path  = /usr/include/qm
 devheaders.files += LoggerSettings.h
 devheaders.files += LoggerDev.h
 devheaders.files += FileLoggerDev.h
@@ -25,9 +28,9 @@ devheaders.files += log_t.h
 devheaders.files += log-interface.h
 devheaders.files += log-declarations.h
 devheaders.files += log
-devheaders.path  = /usr/include/qm
 
-prf.files = iodata.prf
+prf.files = qmlog.prf
 prf.path = /usr/share/qt4/mkspecs/features
 
-INSTALLS = target devheaders prf
+QMAKE_CXXFLAGS  += -Wall -Werror
+QMAKE_CXXFLAGS  += -Wno-psabi
