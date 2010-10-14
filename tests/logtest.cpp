@@ -167,7 +167,6 @@ void log_with_init()
 
 void all_tests(void)
 {
-  // TODO: make a multi-call binary, to have 3 different test cases
   log_warning("============= start of logtest =============");
 
   log_with_init();

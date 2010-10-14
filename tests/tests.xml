@@ -1,8 +1,23 @@
 <testdefinition version="0.1">
   <suite name="qmlog-tests" domain="System Software">
     <set name="simple_tests" description="basic qmlog functionality" feature="System Control" requirement="">
-      <environments><scratchbox>false</scratchbox><hardware>true</hardware></environments>
-      <case name="trivial" description="fake test">
+      <environments>
+        <scratchbox>false</scratchbox>
+        <hardware>true</hardware>
+      </environments>
+      <case name="log_with_init" description="call init and do some logging">
+        <step>logtest log_with_init</step>
+      </case>
+      <case name="log_without_init" description="just do some logging">
+        <step>logtest log_without_init</step>
+      </case>
+      <case name="test_very_long_string" description="a huge message">
+        <step>logtest test_very_long_string</step>
+      </case>
+      <case name="test_growing_lenth" description="find exact threshold for buffer overflow">
+        <step>logtest test_growing_lenth</step>
+      </case>
+      <case name="logtest" description="all simple tests in one run">
         <step>logtest</step>
       </case>
     </set>
