@@ -42,7 +42,7 @@ public:
 protected:
   LoggerDev(int aVerbosityLevel, int aLocationMask, int aMessageFormat);
   virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const = 0;
+                        const char *aDebugInfo, bool aIsLongDebugInfo, const char *aMessage) const = 0;
   const LoggerSettings& settings() const;
 
 private:

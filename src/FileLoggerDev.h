@@ -51,7 +51,7 @@ protected:
   FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel, int aLocationMask, int aMessageFormat);
 
   virtual void printLog(int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                        const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const;
+                        const char *aDebugInfo, bool aIsLongDebugInfo, const char *aMessage) const;
   bool vlogPrefixes(const char *aDateTimeInfo, const char* aProcessInfo) const;
   bool vlogDebugInfo(int aLevel, const char *aDebugInfo, bool aPrefixExists) const;
 

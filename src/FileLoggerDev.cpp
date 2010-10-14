@@ -57,7 +57,7 @@ FileLoggerDev::FileLoggerDev(FILE *aFp, bool aTakeOwnership, int aVerbosityLevel
 }
 
 void FileLoggerDev::printLog( int aLevel, const char *aDateTimeInfo, const char* aProcessInfo,
-                              const char *aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
+                              const char *aDebugInfo, bool aIsLongDebugInfo, const char *aMessage) const
 {
   if(!iFp) return;
   //TODO rework: create format string for output as in SysLogDev
@@ -67,10 +67,7 @@ void FileLoggerDev::printLog( int aLevel, const char *aDateTimeInfo, const char*
 
   if(hasMessage)
   {
-    //TODO probably better to use (hasDebugInfo && settings().isFunc())
-    //instead of aIsFullDebugInfo
-    // aIsFullDebugInfo shall be romove everywhere in this case
-    if(aIsFullDebugInfo && settings().isWordWrap())
+    if(aIsLongDebugInfo && settings().isWordWrap())
     {
       fprintf(iFp, ":\n");
       hasPrefix = vlogPrefixes(aDateTimeInfo, aProcessInfo);

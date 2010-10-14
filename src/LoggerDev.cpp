@@ -158,7 +158,7 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
 
   const int debugInfoLen = 1024;
   SmartBuffer<debugInfoLen> debugInfo;
-  bool isFullDebugInfo = false;
+  bool isLongDebugInfo = false;
 
   if(settings().isDebugInfo() && settings().isLocationShown(aLevel))
   {
@@ -171,17 +171,15 @@ void LoggerDev::vlogGeneric(int aLevel, int aLine, const char *aFile, const char
     if(settings().isFunc() && aFunc)
     {
       debugInfo.append(addSpace? " in %s": "in %s", aFunc);
+      isLongDebugInfo = true;
     }
-
-    isFullDebugInfo = (aLine > 0 && aFile && aFunc) && (settings().isFileLine() && settings().isFunc());
   }
 
   const int messageLen = 1024;
   SmartBuffer<messageLen> message;
   message.vprint(aFmt, anArgs);
 
-  printLog(aLevel, dateInfo(), processInfo(), debugInfo(), isFullDebugInfo, message());
-
+  printLog(aLevel, dateInfo(), processInfo(), debugInfo(), isLongDebugInfo, message());
 }
 
 void LoggerDev::setTempSettings(LoggerSettings& aSettings)

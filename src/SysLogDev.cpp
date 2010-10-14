@@ -53,7 +53,7 @@ int SysLogDev::syslog_level_id(int level)
 }
 
 void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aProcessInfo,
-                          const char* aDebugInfo, bool aIsFullDebugInfo, const char *aMessage) const
+                          const char* aDebugInfo, bool aIsLongDebugInfo, const char *aMessage) const
 {
   const int fmtLen = 32;
   SmartBuffer<fmtLen> fmt;
@@ -94,7 +94,7 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
   {
     //TODO is it possible to move "at" into LoggerDev::logGeneric() now?
     fmt.append(settings().isFileLine()?  (addSpace? " %%s at %%s": "%%s at %%s"): (addSpace? " %%s %%s": "%%s %%s"));
-    fmt.append(hasMessage? ((aIsFullDebugInfo && settings().isWordWrap())? ":": ": %%s"): ".");
+    fmt.append(hasMessage? ((aIsLongDebugInfo && settings().isWordWrap())? ":": ": %%s"): ".");
   }
   else
   {
@@ -106,7 +106,7 @@ void SysLogDev::printLog( int aLevel, const char* aDateTimeInfo, const char* aPr
   {
     syslog(LOG_DAEMON | syslog_level_id(aLevel), "%s", log_t::level_name(aLevel));
   }
-  else if(aIsFullDebugInfo && settings().isWordWrap())
+  else if(aIsLongDebugInfo && settings().isWordWrap())
   {
     syslog(LOG_DAEMON | syslog_level_id(aLevel), fmt(),  aDateTimeInfo, aProcessInfo,
                                                             log_t::level_name(aLevel), aDebugInfo);
