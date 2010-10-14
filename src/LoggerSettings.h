@@ -39,6 +39,10 @@
 #define LOG_OUTPUT_TZ_ABBR         10
 #define LOG_OUTPUT_MTIMER_LOW_BIT  11
 #define LOG_OUTPUT_MTIMER_HIGH_BIT 12
+// TODO bit #13: output tm.tm_gmtoff like
+// [108.151 (EEST) 2010-10-13 17:02:52.831 'Europe/Helsinki' GMT+3]
+// [108.151 (EEST) 2010-10-13 19:32:52.831 'Asia/Kolkata' GMT+5:30]
+// [108.151 (EEST) 2010-10-13 14:02:52.831 'Europe/London' GMT+0]
 
 #define LOG_OUTPUT_MAX_BIT         13
 
