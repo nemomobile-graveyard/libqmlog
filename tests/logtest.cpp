@@ -165,7 +165,7 @@ void log_with_init()
   log_warning("========== with init done ==========");
 }
 
-int main(void)
+void all_tests(void)
 {
   // TODO: make a multi-call binary, to have 3 different test cases
   log_warning("============= start of logtest =============");
@@ -176,5 +176,24 @@ int main(void)
   test_growing_lenth() ;
 
   log_warning("============= end of logtest ==============");
-  return 0;
+}
+
+int main(int ac, char **av)
+{
+  if(ac<=1)
+    all_tests() ;
+  else
+    for(int i=1; i<ac; ++i)
+    {
+#define if_match_run(x) if((string)av[i]==#x) x() ;
+      if_match_run(log_with_init)
+      else if_match_run(log_without_init)
+      else if_match_run(test_very_long_string)
+      else if_match_run(test_growing_lenth)
+      else
+        log_assert(false, "invalid test case name: '%s'", av[i]) ; // TODO: need log_abort() !!!
+#undef  if_match_run
+    }
+
+  return 0 ;
 }
