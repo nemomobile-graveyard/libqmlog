@@ -19,7 +19,10 @@
 #   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
 \_______________________________________________________________________*/
 
+#include <string>
 #include <qm/log>
+
+using namespace std ;
 
 void test_very_long_string()
 {
@@ -56,6 +59,18 @@ void test_very_long_string()
               "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
               "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
               "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+  log_info("===============================");
+}
+
+void test_growing_lenth()
+{
+  log_info("===============================");
+  string s = "" ;
+  for(int i=1; i<=5000; ++i)
+  {
+    s += (string) "x" ;
+    log_notice("i=%d, s='%s'", i, s.c_str()) ;
+  }
   log_info("===============================");
 }
 
@@ -158,6 +173,7 @@ int main(void)
   log_with_init();
   log_without_init();
   test_very_long_string();
+  test_growing_lenth() ;
 
   log_warning("============= end of logtest ==============");
   return 0;
