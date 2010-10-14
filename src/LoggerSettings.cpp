@@ -55,6 +55,7 @@ const LoggerSettings& LoggerSettings::operator= (const LoggerSettings& aLoggerSe
   verbosity_level = aLoggerSettings.verbosity_level;
   location_mask = aLoggerSettings.location_mask;
   message_format = aLoggerSettings.message_format;
+  return *this ;
 }
 
 void LoggerSettings::restore()
