@@ -75,6 +75,11 @@ private:
   bool iRestoreDefaultDevs;
   std::list<LoggerDev*> iDevs;
   std::list<LoggerSettings*> iTempSettings;
+
+  // TODO: keep track of needed time quality (oring all curently used 'devices'
+  //       fill only needed structures
+  //       for example: if nobody want to see milliseconds and monotonic timer (quite usual situation)
+  //                    then just call time(NULL) and calculate struct tm.
   struct timeval iTv;
   struct tm iTm;
   struct timespec iTs;
