@@ -218,7 +218,7 @@ const char *log_t::level_name(int level)
 {
   static const char *names[] =
   {
-    "INTERNAL ERROR", "CRITICAL ERROR", "ERROR", "WARNING", "INFO", "DEBUG"
+    "INTERNAL ERROR", "CRITICAL ERROR", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"
   } ;
   assert(0<=level) ;
   assert((unsigned)level<sizeof(names)/sizeof(*names)) ;

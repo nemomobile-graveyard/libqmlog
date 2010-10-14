@@ -141,6 +141,17 @@
 # define log_warning(...) (void)(0)
 #endif
 
+#if LOG_MAX_LEVEL >= LOG_LEVEL_NOTICE
+# if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_NOTICE)
+#  define log_notice(...) log_t::logger().message(LOG_LEVEL_NOTICE, LOG_LOCATION, ## __VA_ARGS__)
+# else
+#  define log_notice(...) log_t::logger().message(LOG_LEVEL_NOTICE, ## __VA_ARGS__)
+# endif
+#else
+# define log_notice(...) (void)(0)
+#endif
+
+
 #if LOG_MAX_LEVEL >= LOG_LEVEL_INFO
 # if (LOG_MAX_LOCATION) & (1<<LOG_LEVEL_INFO)
 #  define log_info(...) log_t::logger().message(LOG_LEVEL_INFO, LOG_LOCATION, ## __VA_ARGS__)

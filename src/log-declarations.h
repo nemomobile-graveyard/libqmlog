@@ -23,13 +23,14 @@
 
 /* Verbosity levels, the upper boundary could be set at compile time.
  *
- * -1  NO LOGS --- all log macro are disabled
- *  0  INTERNAL --- produced by failing log_assert(...)
+ * -1  NO LOGS --- all the log macros are disabled
+ *  0  INTERNAL --- produced by failing log_assert(...) (mostly with file:line function)
  *  1  CRITICAL --- programm can continue, but some stuff is lost/can't be done
  *  2  ERROR --- incorrect input
  *  3  WARNING --- tolerable input, should be corrected
- *  4  INFO --- just some blah blah
- *  5  DEBUG --- verbose info
+ *  4  NOTICE --- just some blah blah
+ *  5  INFO --- debugging info (usually with file:line function)
+ *  6  DEBUG --- verbose info (usually with file:line function)
  *
  */
 
@@ -38,8 +39,9 @@
 #define LOG_LEVEL_CRITICAL  1
 #define LOG_LEVEL_ERROR     2
 #define LOG_LEVEL_WARNING   3
-#define LOG_LEVEL_INFO      4
-#define LOG_LEVEL_DEBUG     5
+#define LOG_LEVEL_NOTICE    4
+#define LOG_LEVEL_INFO      5
+#define LOG_LEVEL_DEBUG     6
 
 #ifndef LOG_MAX_LEVEL
 #define LOG_MAX_LEVEL LOG_LEVEL_DEBUG
@@ -48,7 +50,7 @@
 #define LOG_BIT_MASK(bit) (1 << (bit))
 
 #ifndef LOG_MAX_LOCATION
-#define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
+#define LOG_MAX_LOCATION (LOG_BIT_MASK(LOG_LEVEL_DEBUG)|LOG_BIT_MASK(LOG_LEVEL_INFO)|LOG_BIT_MASK(LOG_LEVEL_INTERNAL))
 #endif
 
 #ifndef LOG_ASSERTION
@@ -56,7 +58,7 @@
 #endif
 
 #if LOG_MAX_LEVEL<LOG_LEVEL_NO_LOGS || LOG_MAX_LEVEL>LOG_LEVEL_DEBUG
-#error LOG_MAX_LEVEL outside of [-1..5]
+#error LOG_MAX_LEVEL outside of [-1..6]
 #endif
 
 #endif

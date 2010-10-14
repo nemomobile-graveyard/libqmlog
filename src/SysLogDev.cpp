@@ -45,7 +45,7 @@ int SysLogDev::syslog_level_id(int level)
 {
   static int syslog_names[] =
   {
-    LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_INFO, LOG_DEBUG
+    LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG
   } ;
   assert(0<=level) ;
   assert((unsigned)level<sizeof(syslog_names)/sizeof(*syslog_names)) ;
