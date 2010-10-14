@@ -253,7 +253,7 @@ void log_t::message(int level, const char *fmt, ...)
   assert(0<=level) ;
   assert(level<=LOG_MAX_LEVEL) ;
 
-  if(fmt[0] == '\x01' && fmt[1] == 0)
+  if(fmt[0] == '\x01' && fmt[1] == '\0')
     ++fmt;
 
   va_list args ;
