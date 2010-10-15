@@ -79,6 +79,7 @@ void test_empty_log_macro()
   log_info("===== empty macro testing =====");
   log_debug();
   log_info();
+  log_notice();
   log_warning();
   log_error();
   log_critical();
