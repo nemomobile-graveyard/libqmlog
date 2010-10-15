@@ -25,6 +25,7 @@
 #include <ctime>
 #include <list>
 #include <cstdarg>
+#include <string>
 
 class LoggerDev;
 class LoggerSettings;
@@ -65,12 +66,12 @@ private:
   log_t(bool defaultSetup, bool aRestoreDefaultDevs, const char* name = NULL);
   ~log_t();
   void vlog_generic(int level, int line, const char *file, const char *func, const char *fmt, va_list args);
-  const char* processName() const;
+  std::string processName() const;
   void updateTime();
   void createDefaultDevs();
 
 private:
-  static const char *prg_name;
+  static std::string prg_name;
   static log_t * iLogger;
   bool iRestoreDefaultDevs;
   std::list<LoggerDev*> iDevs;

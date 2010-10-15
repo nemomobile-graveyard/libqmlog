@@ -29,6 +29,8 @@
 #include <algorithm>
 #include <memory>
 
+using namespace std ;
+
 #include "log_t.h"
 #include "log-declarations.h"
 #include "LoggerDev.h"
@@ -56,7 +58,7 @@ public:
   }
 };
 
-const char *log_t::prg_name = NULL;
+string log_t::prg_name ;
 log_t *log_t::iLogger = NULL;
 
 log_t& log_t::logger()
@@ -72,7 +74,7 @@ log_t& log_t::logger()
 log_t::log_t(bool defaultSetup, bool aRestoreDefaultDevs, const char* name)
   : iRestoreDefaultDevs(aRestoreDefaultDevs)
 {
-  log_t::prg_name = name?: iLogger->processName();
+  log_t::prg_name = name ? (string)name : iLogger->processName();
 
   if(defaultSetup)
   {
@@ -177,41 +179,46 @@ void log_t::removeTempSettings(LoggerSettings* aSettings)
   iTempSettings.remove(aSettings);
 }
 
-const char* log_t::processName() const
+string log_t::processName() const
 {
-  const int procNameLen = 64;
-  static SmartBuffer<procNameLen> procName;
-  procName.print("default");
+  static const char *anonymous = "<unknown>" ;
+  const unsigned int len = 256 ;
+  char buf[len+1] ;
 
-  const int cmdFileNameLen = 256;
-  SmartBuffer<cmdFileNameLen> cmdFileName;
-  cmdFileName.print("/proc/%d/cmdline", getpid());
+  snprintf(buf, len, "/proc/%d/cmdline", getpid()) ;
 
-  FILE* cmdLineFile = fopen(cmdFileName(), "r");
+  // just being a bit paranoid (a decimal number will be never so long):
+  buf[len] = '\0' ;
 
-  if(cmdLineFile)
+  FILE *fp = fopen(buf, "r") ;
+
+  if(fp==NULL)
+    return anonymous ;
+
+  string name ;
+
+  for(bool word_done=false; not word_done; )
   {
-    const int cmdLen = 256;
-    char cmd[cmdLen];
-    memset(cmd, '\0', cmdLen);
-
-    fscanf(cmdLineFile, "%s", cmd);
-    fclose(cmdLineFile);
-
-    const char* lastSlash = strrchr(cmd, '/');
-
-    if(lastSlash)
-    {
-      procName.print(++lastSlash);
-    }
+    int x = fread(buf, 1, len, fp) ;
+    buf[x] = '\0' ;
+    word_done = strlen(buf) < len ;
+    name += buf ;
   }
 
-  return procName();
+  const char *p = name.c_str(), *q = strrchr(p, '/') ;
+
+  if(q==NULL) // no slash at all
+    return name ;
+
+  if(q[1]=='\0') // trailing slash, again paranoid
+    return anonymous ;
+
+  return q+1 ;
 }
 
 const char* log_t::prgName()
 {
-  return prg_name;
+  return prg_name.c_str() ;
 }
 
 const char *log_t::level_name(int level)
