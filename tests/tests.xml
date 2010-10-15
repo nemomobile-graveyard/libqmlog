@@ -14,8 +14,8 @@
       <case name="test_very_long_string" description="a huge message">
         <step>logtest test_very_long_string</step>
       </case>
-      <case name="test_growing_lenth" description="find exact threshold for buffer overflow">
-        <step>logtest test_growing_lenth</step>
+      <case name="test_growing_length" description="find exact threshold for buffer overflow">
+        <step>logtest test_growing_length</step>
       </case>
       <case name="logtest" description="all simple tests in one run">
         <step>logtest</step>

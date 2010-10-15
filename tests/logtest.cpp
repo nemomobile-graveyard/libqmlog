@@ -62,7 +62,7 @@ void test_very_long_string()
   log_info("===============================");
 }
 
-void test_growing_lenth()
+void test_growing_length()
 {
   log_info("===============================");
   string s = "" ;
@@ -172,7 +172,7 @@ void all_tests(void)
   log_with_init();
   log_without_init();
   test_very_long_string();
-  test_growing_lenth() ;
+  test_growing_length() ;
 
   log_warning("============= end of logtest ==============");
 }
@@ -188,7 +188,7 @@ int main(int ac, char **av)
       if_match_run(log_with_init)
       else if_match_run(log_without_init)
       else if_match_run(test_very_long_string)
-      else if_match_run(test_growing_lenth)
+      else if_match_run(test_growing_length)
       else
         log_assert(false, "invalid test case name: '%s'", av[i]) ; // TODO: need log_abort() !!!
 #undef  if_match_run
