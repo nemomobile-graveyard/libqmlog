@@ -1,0 +1,5 @@
+# Just a binary and xml tests definition
+
+usr/bin/logtest
+usr/share/qmlog-tests/tests.xml
+
