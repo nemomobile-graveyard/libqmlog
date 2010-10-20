@@ -40,9 +40,33 @@
 #define LOG_OUTPUT_MTIMER_LOW_BIT  11
 #define LOG_OUTPUT_MTIMER_HIGH_BIT 12
 // TODO bit #13: output tm.tm_gmtoff like
-// [108.151 (EEST) 2010-10-13 17:02:52.831 'Europe/Helsinki' GMT+3]
-// [108.151 (EEST) 2010-10-13 19:32:52.831 'Asia/Kolkata' GMT+5:30]
-// [108.151 (EEST) 2010-10-13 14:02:52.831 'Europe/London' GMT+0]
+// [108.151: 2010-10-13 17:02:52.831 'Europe/Helsinki' (EEST) GMT+3]
+// [108.151: 2010-10-13 19:32:52.831 'Asia/Kolkata' (IST) GMT+5:30]
+// [108.151: 2010-10-13 14:02:52.831 'Europe/London' (BST) GMT+0)]
+// or like this ?
+// [108.151: 2010-10-13 17:02:52.831 'Europe/Helsinki' (EEST, GMT+3)]
+// [108.151: 2010-10-13 19:32:52.831 'Asia/Kolkata' (IST, GMT+5:30)]
+// [108.151: 2010-10-13 14:02:52.831 'Europe/London' (BST, GMT+0)]
+// or like this ?
+// [108.151 2010-10-13 17:02:52.831 (EEST, GMT+3) 'Europe/Helsinki']
+// [108.151 2010-10-13 19:32:52.831 (IST, GMT+5:30) 'Asia/Kolkata']
+// [108.151 2010-10-13 14:02:52.831 (BST, GMT+0) 'Europe/London']
+// or like this ?
+// [108.151 (EEST) 2010-10-13 17:02:52.831 GMT+3 'Europe/Helsinki']
+// [108.151 (IST) 2010-10-13 19:32:52.831 GMT+5:30 'Asia/Kolkata']
+// [108.151 (BST) 2010-10-13 14:02:52.831 GMT+0 'Europe/London']
+// or like this ?
+// [108.151 'Europe/Helsinki' 2010-10-13 17:02:52.831 (EEST, GMT+3)]
+// [108.151 'Asia/Kolkata' 2010-10-13 19:32:52.831 (IST, GMT+5:30)]
+// [108.151 'Europe/London' 2010-10-13 14:02:52.831 (BST, GMT+0)]
+// or like this ?
+// [108.151 (EEST,GMT+3) 2010-10-13 17:02:52.831 'Europe/Helsinki'] !!!
+// [108.151 (IST,GMT+5:30) 2010-10-13 19:32:52.831 'Asia/Kolkata'] !!!
+// [108.151 (BST,GMT+0) 2010-10-13 14:02:52.831 'Europe/London'] !!!
+// or like this ?
+// [108.151 (GMT+3,EEST) 2010-10-13 17:02:52.831 'Europe/Helsinki']
+// [108.151 (GMT+5:30,IST) 2010-10-13 19:32:52.831 'Asia/Kolkata']
+// [108.151 (GMT+0,BST) 2010-10-13 14:02:52.831 'Europe/London']
 
 #define LOG_OUTPUT_MAX_BIT         13
 
