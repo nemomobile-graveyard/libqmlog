@@ -14,6 +14,7 @@ SOURCES += StdErrLoggerDev.cpp
 SOURCES += StdOutLoggerDev.cpp
 SOURCES += SysLogDev.cpp
 SOURCES += log_t.cpp
+SOURCES += api2.cpp
 
 target.path = /usr/lib
 
