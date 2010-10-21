@@ -1,3 +1,5 @@
+#include <syslog.h>
+
 #include <cstdio>
 #include <cstring>
 
@@ -406,8 +408,8 @@ namespace qmlog
     {
       "INTERNAL ERROR", "CRITICAL ERROR", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"
     } ;
-    if (0 <= level && (unsigned)level < sizeof(names)/sizeof(*names))
-      return names[level] ;
+    if (qmlog::Internal <= level && (unsigned)level <= qmlog::Debug)
+      return names [level-qmlog::Internal] ;
     return "OOPS" ;
   }
 
@@ -416,11 +418,18 @@ namespace qmlog
     level = max_level = maximal_log_level ;
     dispatcher = d ;
     dispatcher->attach(this) ;
+    fields = 0 ;
+    enable_fields(Message|Location_Block) ;
+    enable_fields(Process_Block) ;
+    enable_fields(Timezone_Abbreviation) ;
+    enable_fields(Date|Time) ;
+    enable_fields(Multiline) ;
+    enable_fields(Level) ;
   }
 
   int abstract_log_t::log_level(int new_level)
   {
-    if(new_level<=max_level)
+    if (new_level<=max_level)
       level = new_level ;
     return level ;
   }
@@ -576,6 +585,74 @@ namespace qmlog
 
     submit_message(level, buf.c_str()) ;
   }
+
+  log_file::log_file(const char *path, int maximal_log_level, dispatcher_t *d)
+    : abstract_log_t(maximal_log_level, d)
+  {
+    fp = fopen(path, "a") ;
+    to_be_closed = fp != NULL ;
+  }
+
+  log_file::log_file(FILE *fp, int maximal_log_level, dispatcher_t *d)
+    : abstract_log_t(maximal_log_level, d)
+  {
+    this->fp = fp ;
+    to_be_closed = fp != NULL ;
+  }
+
+  log_file::~log_file()
+  {
+    if (to_be_closed)
+      fclose(fp) ;
+  }
+
+  void log_file::submit_message(int /* level */, const char *message)
+  {
+    if (fp!=NULL)
+    {
+      fprintf(fp, "%s\n", message) ;
+      fflush(fp) ;
+    }
+  }
+
+  log_stderr::log_stderr(int maximal_log_level, dispatcher_t *d)
+    : log_file(stderr, maximal_log_level, d)
+  {
+    disable_fields(qmlog::Timestamp_Mask) ;
+  }
+
+  log_stdout::log_stdout(int maximal_log_level, dispatcher_t *d)
+    : log_file(stdout, maximal_log_level, d)
+  {
+    disable_fields(qmlog::Timestamp_Mask) ;
+  }
+
+  log_syslog::log_syslog(int maximal_log_level, dispatcher_t *d)
+    : abstract_log_t(maximal_log_level, d)
+  {
+    disable_fields(qmlog::Timestamp_Mask) ;
+    disable_fields(qmlog::Process_Block) ;
+    disable_fields(qmlog::Multiline) ;
+    openlog(dispatcher->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
+  }
+
+  log_syslog::~log_syslog()
+  {
+    closelog() ;
+  }
+
+  void log_syslog::submit_message(int level, const char *message)
+  {
+    static int syslog_names[] =
+    {
+      LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG
+    } ;
+    assert(qmlog::Internal<=level) ;
+    assert(level<=qmlog::Debug) ;
+    syslog(LOG_DAEMON | syslog_names[level-qmlog::Internal], "%s", message) ;
+  }
+
+
 
 
 

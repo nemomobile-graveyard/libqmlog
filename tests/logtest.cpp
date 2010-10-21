@@ -20,7 +20,7 @@
 \_______________________________________________________________________*/
 
 #include <string>
-#include <qm/log>
+#include <qmlog.h>
 
 using namespace std ;
 
@@ -91,6 +91,7 @@ do {                                                  \
   log_info("====== fmt macro testing =====");         \
   log_debug(fmt, ## __VA_ARGS__);                     \
   log_info(fmt, ## __VA_ARGS__);                      \
+  log_notice(fmt, ## __VA_ARGS__);                      \
   log_warning(fmt, ## __VA_ARGS__);                   \
   log_error(fmt, ## __VA_ARGS__);                     \
   log_critical(fmt, ## __VA_ARGS__);                  \
@@ -197,3 +198,5 @@ int main(int ac, char **av)
 
   return 0 ;
 }
+
+#include "qm/api2.h"

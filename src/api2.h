@@ -4,6 +4,7 @@
 #include <sys/time.h>
 
 #include <string.h>
+#include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
 
@@ -250,7 +251,7 @@ namespace qmlog
 
   enum levels
   {
-    Silent   = QMLOG_NONE,
+    None     = QMLOG_NONE,
     Internal = QMLOG_INTERNAL,
     Critical = QMLOG_CRITICAL,
     Error    = QMLOG_ERROR,
@@ -276,7 +277,7 @@ namespace qmlog
 
   class object_t
   {
-    static object_t object ;
+    // static object_t object ;
     std::string name ;
     dispatcher_t *current_dispatcher ;
     dispatcher_t *master ;
@@ -362,6 +363,7 @@ namespace qmlog
 
   class abstract_log_t
   {
+  protected:
     dispatcher_t *dispatcher ;
     int level, max_level ;
     int fields ;
@@ -381,38 +383,38 @@ namespace qmlog
   class log_file : public abstract_log_t
   {
     bool to_be_closed ;
-    log_file(const char *path, int maximal_log_level=qmlog::Debug, dispatcher_t *dispatcher=NULL) ;
+    FILE *fp ;
+  public:
+    log_file(const char *path, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
+    log_file(FILE *fp, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
    ~log_file() ;
     void submit_message(int level, const char *message) ;
   } ;
 
-  class log_stderr : public abstract_log_t
+  class log_stderr : public log_file
   {
-    log_stderr(int maximal_log_level=qmlog::Debug, dispatcher_t *dispatcher=NULL) ;
-   ~log_stderr() ;
+  public:
+    log_stderr(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
+   ~log_stderr() { }
   } ;
 
-  class log_stdout : public abstract_log_t
+  class log_stdout : public log_file
   {
-    log_stdout(int maximal_log_level=qmlog::Debug, dispatcher_t *dispatcher=NULL) ;
-   ~log_stdout() ;
+  public:
+    log_stdout(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
+   ~log_stdout() { }
   } ;
 
   class log_syslog : public abstract_log_t
   {
-    log_syslog() ;
+  public:
+    log_syslog(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
    ~log_syslog() ;
     void submit_message(int level, const char *message) ;
   } ;
 
   class slave_dispatcher_t : public dispatcher_t
   {
-  } ;
-
-  class settings_modifier
-  {
-    settings_modifier() ;
-   ~settings_modifier() ;
   } ;
 
   inline void init() { object.init() ; }

@@ -24,13 +24,13 @@ Depends: libqmlog0 (= ${binary:Version}), libqt4-dev (>= 4.5)
 Description: development package for libqmlog
  Provides header files for qmlog library
 
-Package: qmlog-tests
-Architecture: any
-Depends: ${shlibs:Depends}, ci-testing
-XB-Maemo-CI-Packages: libqmlog0
-XB-Maemo-CI-Stage: fast, staging, acceptance, validation
-Section: tests
-Description: testcases for qmlog library
+# Package: qmlog-tests
+# Architecture: any
+# Depends: ${shlibs:Depends}, ci-testing
+# XB-Maemo-CI-Packages: libqmlog0
+# XB-Maemo-CI-Stage: fast, staging, acceptance, validation
+# Section: tests
+# Description: testcases for qmlog library
 
 Package: qmlog-tests-dbg
 Architecture: any
