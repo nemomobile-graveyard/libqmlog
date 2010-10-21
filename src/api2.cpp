@@ -113,8 +113,9 @@ namespace qmlog
 
   void dispatcher_t::message(int level)
   {
+    const char *empty_format = "" ;
     if (level<=current_level)
-      message(level, -1, NULL, NULL, "") ;
+      message(level, -1, NULL, NULL, empty_format) ;
   }
 
   void dispatcher_t::message(int level, const char *fmt, ...)
@@ -130,8 +131,9 @@ namespace qmlog
 
   void dispatcher_t::message(int level, int line, const char *file, const char *func)
   {
+    const char *empty_format = "" ;
     if (level<=current_level)
-      message(level, line, file, func, "") ;
+      message(level, line, file, func, empty_format) ;
   }
 
   void dispatcher_t::message(int level, int line, const char *file, const char *func, const char *fmt, ...)
@@ -147,7 +149,8 @@ namespace qmlog
 
   void dispatcher_t::message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func)
   {
-    message_failed_assertion(abortion, assertion, line, file, func, "") ;
+    const char *empty_format = "" ;
+    message_failed_assertion(abortion, assertion, line, file, func, empty_format) ;
   }
 
   void dispatcher_t::message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
