@@ -335,13 +335,13 @@ namespace qmlog
     void attach(abstract_log_t *);
     void detach(abstract_log_t *);
     void message(int level) ;
-    void message(int level, const char *fmt, ...) ;
+    void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
     void message(int level, int line, const char *file, const char *func) ;
-    void message(int level, int line, const char *file, const char *func, const char *fmt, ...) ;
+    void message(int level, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
     void message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func) ;
-    void message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func, const char *fmt, ...) ;
+    void message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,7,8))) ;
     void message_abortion(bool abortion, int line, const char *file, const char *func) ;
-    void message_abortion(bool abortion, int line, const char *file, const char *func, const char *fmt, ...) ;
+    void message_abortion(bool abortion, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
     void message_ndebug(bool abortion) ;
     void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
     const char *str_monotonic() ;
