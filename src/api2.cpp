@@ -86,7 +86,7 @@ namespace qmlog
 
   dispatcher_t::dispatcher_t(const char *name)
   {
-    this->name = (name==NULL) ? qmlog::object.get_name() : string(name) ;
+    this->name = (name==NULL) ? object_t::get_process_name() : string(name) ;
     last_pid = (pid_t) 0 ;
     current_level = qmlog::Full ;
   }
@@ -145,11 +145,267 @@ namespace qmlog
     }
   }
 
+  void dispatcher_t::message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func)
+  {
+    message_failed_assertion(abortion, assertion, line, file, func, "") ;
+  }
+
+  void dispatcher_t::message_failed_assertion(bool abortion, const char *assertion, int line, const char *file, const char *func, const char *fmt, ...)
+  {
+    bool message_follows = fmt[0] != 0 ;
+
+    message(QMLOG_INTERNAL, line, file, func, "Assertion '%s' failed" "%s", assertion, message_follows ? "; detailed info follows:" : ".") ;
+
+    if(message_follows)
+    {
+      va_list args ;
+      va_start(args, fmt) ;
+      generic(QMLOG_INTERNAL, -1, "", "", fmt, args) ;
+      va_end(args) ;
+    }
+
+    message_ndebug(abortion) ;
+  }
+
+  void dispatcher_t::message_abortion(bool abortion, int line, const char *file, const char *func)
+  {
+    message_abortion(abortion, line, file, func) ;
+  }
+
+  void dispatcher_t::message_abortion(bool abortion, int line, const char *file, const char *func, const char *fmt, ...)
+  {
+    bool message_follows = fmt[0] != 0 ;
+    message(QMLOG_INTERNAL, line, file, func, "Program is to be aborted" "%s", message_follows ? "; detailed info follows:" : ".") ;
+
+    if(message_follows)
+    {
+      va_list args ;
+      va_start(args, fmt) ;
+      generic(QMLOG_INTERNAL, -1, "", "", fmt, args) ;
+      va_end(args) ;
+    }
+
+    message_ndebug(abortion) ;
+  }
+
+  void dispatcher_t::message_ndebug(bool abortion)
+  {
+    if (abortion)
+      message(QMLOG_INTERNAL, "the program will terminate due to internal error above") ;
+    else
+      message(QMLOG_INTERNAL, "the program execution will be continued as abortion was disabled at compile time") ;
+  }
+
   void dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
   {
+    got_timestamp = got_localtime =
+      has_monotonic = has_monotonic_nano = has_monotonic_micro = has_monotonic_milli =
+      has_gmt_offset = has_tz_symlink =
+      has_date = has_time = has_time_micro = has_time_milli = false ;
+
     for(set<abstract_log_t*>::iterator it=logs.begin(); it!=logs.end(); ++it)
       if (level<=(*it)->log_level())
         (*it)->compose_message(level, line, file, func, fmt, arg) ;
+  }
+
+  void dispatcher_t::get_timestamp()
+  {
+    if (not got_timestamp)
+    {
+      // Not checking, if call is successful: nothing can be done even if not
+      clock_gettime(CLOCK_MONOTONIC, &monotonic_timestamp) ;
+      gettimeofday(&timestamp, NULL) ;
+      got_timestamp = true ;
+    }
+  }
+
+  void dispatcher_t::get_localtime()
+  {
+    if (not got_localtime)
+    {
+      get_timestamp() ;
+      tzset() ;
+      if (not localtime_r(&timestamp.tv_sec, &localtime))
+      {
+        // theoretically localtime_r() may fail on a 64 bit architecture
+        // due to year value overflow, let's fill the structure with zeroes
+        // then...
+        memset(&localtime, 0, sizeof(struct tm)) ;
+      }
+      got_localtime = true ;
+    }
+  }
+
+  const char *dispatcher_t::str_monotonic()
+  {
+    if (not has_monotonic)
+    {
+      get_timestamp() ;
+      s_mono.rewind(0) ;
+      s_mono.printf("%lld", (long long)monotonic_timestamp.tv_sec) ;
+      has_monotonic = true ;
+    }
+    return s_mono.c_str() ;
+  }
+
+  const char *dispatcher_t::str_monotonic_nano()
+  {
+    if (not has_monotonic_nano)
+    {
+      get_timestamp() ;
+      s_mono_nano.rewind(0) ;
+      s_mono_nano.printf("%09ld", monotonic_timestamp.tv_nsec) ;
+      has_monotonic_nano = true ;
+    }
+    return s_mono_nano.c_str() ;
+  }
+
+  const char *dispatcher_t::str_monotonic_micro()
+  {
+    if (not has_monotonic_micro)
+    {
+      get_timestamp() ;
+      s_mono_micro.rewind(0) ;
+      s_mono_micro.printf("%06ld", monotonic_timestamp.tv_nsec / 1000) ;
+      has_monotonic_micro = true ;
+    }
+    return s_mono_micro.c_str() ;
+  }
+
+  const char *dispatcher_t::str_monotonic_milli()
+  {
+    if (not has_monotonic_milli)
+    {
+      get_timestamp() ;
+      s_mono_milli.rewind(0) ;
+      s_mono_milli.printf("%03ld", monotonic_timestamp.tv_nsec / (1000*1000)) ;
+      has_monotonic_milli = true ;
+    }
+    return s_mono_milli.c_str() ;
+  }
+
+  const char *dispatcher_t::str_time()
+  {
+    if (not has_time)
+    {
+      get_localtime() ;
+      s_time.rewind() ;
+      s_time.printf("%02d:%02d:%02d", localtime.tm_hour, localtime.tm_min, localtime.tm_sec) ;
+      has_time = true ;
+    }
+    return s_time.c_str() ;
+  }
+
+  const char *dispatcher_t::str_time_micro()
+  {
+    if (not has_time_micro)
+    {
+      get_timestamp() ;
+      s_time_micro.rewind() ;
+      s_time_micro.printf("%06d", (int)timestamp.tv_usec) ;
+      has_time_micro = true ;
+    }
+    return s_time_micro.c_str() ;
+  }
+
+  const char *dispatcher_t::str_time_milli()
+  {
+    if (not has_time_milli)
+    {
+      get_timestamp() ;
+      s_time_milli.rewind() ;
+      s_time_milli.printf("%03d", (int)timestamp.tv_usec / 1000) ;
+      has_time_milli = true ;
+    }
+    return s_time_milli.c_str() ;
+  }
+
+  const char *dispatcher_t::str_gmt_offset()
+  {
+    if (not has_gmt_offset)
+    {
+      get_localtime() ;
+      s_gmt_offset.rewind() ;
+      int sec = localtime.tm_gmtoff ;
+      char sign = sec<0 ? (sec = -sec, '-') : '+' ;
+      int min = sec/60, hour = min/60 ;
+      sec %= 60, min %=60 ;
+      if (sec)
+        s_gmt_offset.printf("%c" "%d:%02d:%02d", sign, hour, min, sec) ;
+      else if(min)
+        s_gmt_offset.printf("%c" "%d:%02d", sign, hour, min) ;
+      else
+        s_gmt_offset.printf("%c" "%d", sign, hour) ;
+      has_gmt_offset = true ;
+    }
+    return s_gmt_offset.c_str() ;
+  }
+
+  const char *dispatcher_t::str_tz_symlink()
+  {
+    if (not has_tz_symlink)
+    {
+      s_tz_symlink.rewind() ;
+      if (s_tz_symlink.readlink("/etc/localtime")<0)
+      {
+        s_tz_symlink.printf("%m") ;
+        tz_symlink_offset = 0 ;
+      }
+      else
+      {
+        static const char base[] = "/usr/share/zoneinfo/" ;
+        static const int base_len = sizeof(base) - 1 ;
+        tz_symlink_offset = strncmp(s_tz_symlink.c_str(), base, base_len) ? 0 : base_len ;
+      }
+      has_tz_symlink = true ;
+    }
+    return s_tz_symlink.c_str() + tz_symlink_offset ;
+  }
+
+  const char *dispatcher_t::str_date()
+  {
+    if (not has_date)
+    {
+      get_localtime() ;
+      s_date.rewind() ;
+      s_date.printf("%d-%02d-%02d", localtime.tm_year+1900, localtime.tm_mon+1, localtime.tm_mday) ;
+      has_date = true ;
+    }
+    return s_date.c_str() ;
+  }
+
+  const char *dispatcher_t::str_tz_abbreviation()
+  {
+    get_localtime() ;
+    return localtime.tm_zone ;
+  }
+
+  const char *dispatcher_t::str_name()
+  {
+    return name.c_str() ;
+  }
+
+  const char *dispatcher_t::str_pid()
+  {
+    pid_t pid = getpid() ;
+    if (last_pid != pid)
+    {
+      s_pid.rewind() ;
+      s_pid.printf("%d", pid) ;
+      last_pid = pid ;
+    }
+    return s_pid.c_str() ;
+  }
+
+  const char *dispatcher_t::str_level(int level)
+  {
+    static const char *names[] =
+    {
+      "INTERNAL ERROR", "CRITICAL ERROR", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"
+    } ;
+    if (0 <= level && (unsigned)level < sizeof(names)/sizeof(*names))
+      return names[level] ;
+    return "OOPS" ;
   }
 
   abstract_log_t::abstract_log_t(int maximal_log_level, dispatcher_t *d)
@@ -206,7 +462,6 @@ namespace qmlog
       buf.printf("[") ;
       if (int mono = fields & qmlog::Monotonic_Mask)
       {
-        dispatcher->get_timestamp() ;
         buf.printf("%s", dispatcher->str_monotonic()) ;
         if (mono & qmlog::Monotonic_Milli)
         {
@@ -222,7 +477,6 @@ namespace qmlog
       if (int tz = fields & qmlog::Timezone_Tm_Block)
       {
         buf.printf("%s(", ti_separator) ;
-        dispatcher->get_struct_tm() ;
         const char *tz_separator = "" ;
         if (tz & qmlog::Timezone_Offset)
         {
@@ -277,11 +531,11 @@ namespace qmlog
     bool output_line = line>0 && (fields & qmlog::Line) ;
     bool output_func = func!=NULL && (fields & qmlog::Function) ;
     bool location = output_line or output_func ;
-    bool wrap = output_func and (fields & qmlog::Multiline) ;
+    bool wrap = output_func and message and (fields & qmlog::Multiline) ;
 
     if (fields & qmlog::Level)
     {
-      buf.printf("%s%s", separator, dispatcher->str_level()) ;
+      buf.printf("%s%s", separator, dispatcher_t::str_level(level)) ;
       if (not message and not location)
         buf.printf(".") ;
       else if (not message or not location)
