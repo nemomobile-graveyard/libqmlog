@@ -3,32 +3,20 @@ TEMPLATE=lib
 QT -= gui
 
 TARGET = qmlog
-INSTALLS = target devheaders prf
+INSTALLS = target usr_include usr_include_qmlog prf
 
 INCLUDEPATH += ../H
 
-SOURCES += LoggerSettings.cpp
-SOURCES += LoggerDev.cpp
-SOURCES += FileLoggerDev.cpp
-SOURCES += StdErrLoggerDev.cpp
-SOURCES += StdOutLoggerDev.cpp
-SOURCES += SysLogDev.cpp
-SOURCES += log_t.cpp
 SOURCES += api2.cpp
 
 target.path = /usr/lib
 
-devheaders.path  = /usr/include/qm
-devheaders.files += LoggerSettings.h
-devheaders.files += LoggerDev.h
-devheaders.files += FileLoggerDev.h
-devheaders.files += StdErrLoggerDev.h
-devheaders.files += StdOutLoggerDev.h
-devheaders.files += SysLogDev.h
-devheaders.files += log_t.h
-devheaders.files += log-interface.h
-devheaders.files += log-declarations.h
-devheaders.files += log
+usr_include.path = /usr/include
+usr_include.files = qmlog.h
+
+usr_include_qmlog.path = /usr/include/qmlog
+usr_include_qmlog.files = api2.h
+
 
 prf.files = qmlog.prf
 prf.path = /usr/share/qt4/mkspecs/features
