@@ -16,3 +16,6 @@ prf.files = iodata.prf
 prf.path = /usr/share/qt4/mkspecs/features
 
 INSTALLS = target devheaders prf
+
+QMAKE_CXXFLAGS  += -Wall -Wno-psabi
+
