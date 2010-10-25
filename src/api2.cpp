@@ -39,12 +39,7 @@ namespace qmlog
     const unsigned int len = 256 ;
     char buf[len+1] ;
 
-    snprintf(buf, len, "/proc/%d/cmdline", getpid()) ;
-
-    // just being a bit paranoid (a decimal number will be never so long):
-    buf[len] = '\0' ;
-
-    FILE *fp = fopen(buf, "r") ;
+    FILE *fp = fopen("/proc/self/cmdline", "r") ;
 
     if(fp==NULL)
       return anonymous ;
@@ -53,11 +48,13 @@ namespace qmlog
 
     for(bool word_done=false; not word_done; )
     {
-      int x = fread(buf, 1, len, fp) ;
+      size_t x = fread(buf, 1, len, fp) ;
       buf[x] = '\0' ;
       word_done = strlen(buf) < len ;
       name += buf ;
     }
+
+    fclose(fp) ;
 
     const char *p = name.c_str(), *q = strrchr(p, '/') ;
 
