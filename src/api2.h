@@ -157,6 +157,7 @@ struct smart_buffer
     if (p!=a)
       delete[] p ;
     p = q ;
+    len = new_len ;
   }
 
  ~smart_buffer()
@@ -247,6 +248,7 @@ namespace qmlog
     Timezone_Tm_Block     = Timezone_Offset|Timezone_Abbreviation,
     Process_Block         = Name|Pid,
     Location_Block        = Line|Function,
+    All_Fields            = (1<<19)-1
   } ;
 
   enum levels
@@ -415,6 +417,8 @@ namespace qmlog
 
   class slave_dispatcher_t : public dispatcher_t
   {
+  public:
+    slave_dispatcher_t(const char *name, bool attach_name=true) ;
   } ;
 
   inline void init() { object.init() ; }

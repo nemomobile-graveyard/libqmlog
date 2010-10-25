@@ -15,6 +15,7 @@ namespace qmlog
 
   object_t::object_t()
   {
+    fprintf(stderr, "%s\n", __PRETTY_FUNCTION__) ;
     static bool first = true ;
     if(! first)
     {
@@ -24,7 +25,7 @@ namespace qmlog
 
     first = false ;
 
-    slave_dispatcher_t *d = new slave_dispatcher_t ;
+    slave_dispatcher_t *d = new slave_dispatcher_t("qmlog") ;
     // TODO: set default options and loggers...
     register_slave(d) ;
     current_dispatcher = d ;
@@ -335,6 +336,7 @@ namespace qmlog
       char sign = sec<0 ? (sec = -sec, '-') : '+' ;
       int min = sec/60, hour = min/60 ;
       sec %= 60, min %=60 ;
+      s_gmt_offset.printf("GMT") ;
       if (sec)
         s_gmt_offset.printf("%c" "%d:%02d:%02d", sign, hour, min, sec) ;
       else if(min)
@@ -416,7 +418,7 @@ namespace qmlog
   abstract_log_t::abstract_log_t(int maximal_log_level, dispatcher_t *d)
   {
     level = max_level = maximal_log_level ;
-    dispatcher = d ;
+    dispatcher = d ?: qmlog::object.get_current_dispatcher() ;
     dispatcher->attach(this) ;
     fields = 0 ;
     enable_fields(Message|Location_Block) ;
@@ -477,11 +479,11 @@ namespace qmlog
         buf.printf("%s", dispatcher->str_monotonic()) ;
         if (mono & qmlog::Monotonic_Milli)
         {
-          if (mono & qmlog::Monotonic_Nano)
+          if (mono == qmlog::Monotonic_Nano)
             buf.printf(".%s", dispatcher->str_monotonic_nano()) ;
-          else if (mono & qmlog::Monotonic_Micro)
+          else if (mono == qmlog::Monotonic_Micro)
             buf.printf(".%s", dispatcher->str_monotonic_micro()) ;
-          else
+          else if (mono == qmlog::Monotonic_Milli)
             buf.printf(".%s", dispatcher->str_monotonic_milli()) ;
         }
         ti_separator = " " ;
@@ -490,13 +492,13 @@ namespace qmlog
       {
         buf.printf("%s(", ti_separator) ;
         const char *tz_separator = "" ;
-        if (tz & qmlog::Timezone_Offset)
-        {
-          buf.printf("%s", dispatcher->str_gmt_offset()) ;
-          tz_separator = "," ;
-        }
         if (tz & qmlog::Timezone_Abbreviation)
-          buf.printf("%s%s", tz_separator, dispatcher->str_tz_abbreviation()) ;
+        {
+          buf.printf("%s", dispatcher->str_tz_abbreviation()) ;
+          tz_separator = ":" ;
+        }
+        if (tz & qmlog::Timezone_Offset)
+          buf.printf("%s%s", tz_separator, dispatcher->str_gmt_offset()) ;
         buf.printf(")") ;
         ti_separator = " " ;
       }
@@ -510,9 +512,9 @@ namespace qmlog
         buf.printf("%s%s", ti_separator, dispatcher->str_time()) ;
         if (time & qmlog::Time_Milli)
         {
-          if (time & qmlog::Time_Micro)
+          if (time == qmlog::Time_Micro)
             buf.printf(".%s", dispatcher->str_time_micro()) ;
-          else
+          else if (time == qmlog::Time_Milli)
             buf.printf(".%s", dispatcher->str_time_milli()) ;
         }
         ti_separator = " " ;
@@ -529,14 +531,13 @@ namespace qmlog
       if (fields & Name)
       {
         buf.printf("%s", dispatcher->str_name()) ;
-        p_separator = ":" ;
+        p_separator = "," ;
       }
       if (fields & Pid)
         buf.printf("%s%s", p_separator, dispatcher->str_pid()) ;
       buf.printf("]") ;
       separator = " " ;
     }
-    buf.printf("%s", separator) ;
     int prefix = buf.position() ;
 
     bool message = (*fmt!='\0') && (fields & qmlog::Message) ;
@@ -574,7 +575,7 @@ namespace qmlog
     {
       submit_message(level, buf.c_str()) ;
       buf.rewind(prefix) ;
-      separator = "-> " ;
+      separator = " \\_ " ;
     }
 
     if (message)
@@ -633,6 +634,7 @@ namespace qmlog
     disable_fields(qmlog::Timestamp_Mask) ;
     disable_fields(qmlog::Process_Block) ;
     disable_fields(qmlog::Multiline) ;
+    disable_fields(qmlog::Level) ;
     openlog(dispatcher->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
   }
 
@@ -650,6 +652,11 @@ namespace qmlog
     assert(qmlog::Internal<=level) ;
     assert(level<=qmlog::Debug) ;
     syslog(LOG_DAEMON | syslog_names[level-qmlog::Internal], "%s", message) ;
+  }
+
+  slave_dispatcher_t::slave_dispatcher_t(const char *name, bool attach_name)
+    : dispatcher_t(not attach_name ? name : (string(name)+"|"+object_t::get_process_name()).c_str())
+  {
   }
 
 
