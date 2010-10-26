@@ -153,7 +153,8 @@ struct smart_buffer
   {
     unsigned new_len = len + len ;
     char *q = new char[new_len] ;
-    memcpy(q, p, pos) ;
+    if (pos>0)
+      memcpy(q, p, pos) ;
     if (p!=a)
       delete[] p ;
     p = q ;
@@ -296,6 +297,7 @@ namespace qmlog
   {
     std::string name ;
     std::set<abstract_log_t *> logs ;
+    std::set<slave_dispatcher_t*> slaves ;
 
     void get_timestamp() ;
     bool got_timestamp ;
@@ -333,10 +335,13 @@ namespace qmlog
     int current_level ;
   public:
     dispatcher_t(const char *name=NULL) ;
+    virtual ~dispatcher_t() ;
     int log_level(int new_level) ;
     int log_level() ;
-    void attach(abstract_log_t *);
-    void detach(abstract_log_t *);
+    void attach(abstract_log_t *) ;
+    void detach(abstract_log_t *) ;
+    void bind_slave(slave_dispatcher_t *) ;
+    void release_slave(slave_dispatcher_t *) ;
     void message(int level) ;
     void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
     void message(int level, int line, const char *file, const char *func) ;
@@ -346,7 +351,8 @@ namespace qmlog
     void message_abortion(bool abortion, int line, const char *file, const char *func) ;
     void message_abortion(bool abortion, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
     void message_ndebug(bool abortion) ;
-    void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
+    virtual void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
+    void process_message(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
     const char *str_monotonic() ;
     const char *str_monotonic_nano() ;
     const char *str_monotonic_micro() ;
@@ -418,7 +424,10 @@ namespace qmlog
   class slave_dispatcher_t : public dispatcher_t
   {
   public:
+    dispatcher_t *master ;
     slave_dispatcher_t(const char *name, bool attach_name=true) ;
+   ~slave_dispatcher_t() ;
+    void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
   } ;
 
   inline void init() { object.init() ; }

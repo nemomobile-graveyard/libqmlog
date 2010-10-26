@@ -91,6 +91,13 @@ namespace qmlog
     current_level = qmlog::Full ;
   }
 
+  dispatcher_t::~dispatcher_t()
+  {
+    set<slave_dispatcher_t*> slaves_copy = slaves ;
+    for(set<slave_dispatcher_t*>::const_iterator it=slaves_copy.begin(); it!=slaves_copy.end(); ++it)
+      release_slave(*it) ;
+  }
+
   int dispatcher_t::log_level(int new_level)
   {
     return current_level = new_level ;
@@ -109,6 +116,18 @@ namespace qmlog
   void dispatcher_t::detach(abstract_log_t *l)
   {
     logs.erase(l) ;
+  }
+
+  void dispatcher_t::bind_slave(slave_dispatcher_t *d)
+  {
+    slaves.insert(d) ;
+    d->master = this ;
+  }
+
+  void dispatcher_t::release_slave(slave_dispatcher_t *d)
+  {
+    d->master = NULL ;
+    slaves.erase(d) ;
   }
 
   void dispatcher_t::message(int level)
@@ -199,7 +218,7 @@ namespace qmlog
       message(QMLOG_INTERNAL, "the program execution will be continued as abortion was disabled at compile time") ;
   }
 
-  void dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
+  void dispatcher_t::process_message(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
   {
     got_timestamp = got_localtime =
       has_monotonic = has_monotonic_nano = has_monotonic_micro = has_monotonic_milli =
@@ -209,6 +228,11 @@ namespace qmlog
     for(set<abstract_log_t*>::iterator it=logs.begin(); it!=logs.end(); ++it)
       if (level<=(*it)->log_level())
         (*it)->compose_message(level, line, file, func, fmt, arg) ;
+  }
+
+  void dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
+  {
+    this->process_message(level, line, file, func, fmt, arg) ;
   }
 
   void dispatcher_t::get_timestamp()
@@ -654,8 +678,20 @@ namespace qmlog
   slave_dispatcher_t::slave_dispatcher_t(const char *name, bool attach_name)
     : dispatcher_t(not attach_name ? name : (string(name)+"|"+object_t::get_process_name()).c_str())
   {
+    master = NULL ;
   }
 
+  slave_dispatcher_t::~slave_dispatcher_t()
+  {
+    if (master)
+      master->release_slave(this) ;
+  }
+
+  void slave_dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
+  {
+    dispatcher_t *d = master ? master : this ;
+    d->process_message(level, line, file, func, fmt, arg) ;
+  }
 
 
 
