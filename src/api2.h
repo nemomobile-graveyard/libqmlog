@@ -286,7 +286,7 @@ namespace qmlog
     dispatcher_t *master ;
     std::set<slave_dispatcher_t *> slaves ;
   public:
-    void init() ;
+    void init(const char *name=NULL) ;
     static std::string get_process_name() ;
     object_t() ;
     void register_slave(slave_dispatcher_t *) ;
@@ -430,7 +430,7 @@ namespace qmlog
     void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
   } ;
 
-  inline void init() { object.init() ; }
+  inline void init(const char *name=NULL) { object.init(name) ; }
 }
 
 #endif // QMLOG_DISPATHCER_H

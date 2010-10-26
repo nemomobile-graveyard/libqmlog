@@ -67,7 +67,7 @@ namespace qmlog
     return q+1 ;
   }
 
-  void object_t::init()
+  void object_t::init(const char *name)
   {
     static bool first = true ;
     if (not first)
@@ -76,7 +76,7 @@ namespace qmlog
     }
     first = false ;
 
-    current_dispatcher = master = new dispatcher_t ;
+    current_dispatcher = master = new dispatcher_t(name) ;
   }
 
   void object_t::register_slave(slave_dispatcher_t *d)
