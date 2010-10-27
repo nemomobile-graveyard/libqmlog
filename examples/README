@@ -1,0 +1,17 @@
+application/
+-----------
+a standalone application 'qmlog-example' logging to /tmp/foo.log
+
+library/
+-------
+a shared library logging (by default) to /tmp/libfoo.log
+
+server/
+------
+an application 'logging-foo-server' logging to /tmp/server.log and
+re-dispatching library's logging to its own log file instead of /tmp/libfoo.log
+
+client/
+------
+an application 'logging-foo-client' logging to /tmp/client.log and
+leaving the library to log into its own log file /tmp/libfoo.log
