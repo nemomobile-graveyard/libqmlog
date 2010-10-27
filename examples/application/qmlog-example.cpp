@@ -20,7 +20,7 @@
 \_______________________________________________________________________*/
 
 #include <string>
-#include <qmlog.h>
+#include <qmlog>
 
 using namespace std ;
 
@@ -198,5 +198,3 @@ int main(int ac, char **av)
 
   return 0 ;
 }
-
-#include "qm/api2.h"
