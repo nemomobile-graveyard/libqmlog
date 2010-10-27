@@ -1,9 +1,0 @@
-#include <qm/log-declarations.h>
-#include <qm/log-interface.h>
-#include <qm/log_t.h>
-#include <qm/SysLogDev.h>
-#include <qm/StdOutLoggerDev.h>
-#include <qm/StdErrLoggerDev.h>
-#include <qm/FileLoggerDev.h>
-#include <qm/LoggerDev.h>
-#include <qm/LoggerSettings.h>

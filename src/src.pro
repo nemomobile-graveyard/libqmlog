@@ -5,8 +5,6 @@ QT -= gui
 TARGET = qmlog
 INSTALLS = target usr_include usr_include_qmlog prf
 
-INCLUDEPATH += ../H
-
 SOURCES += api2.cpp
 
 target.path = $$(DESTDIR)/usr/lib
@@ -16,7 +14,6 @@ usr_include.files = qmlog.h
 
 usr_include_qmlog.path = $$(DESTDIR)/usr/include/qmlog
 usr_include_qmlog.files = api2.h
-
 
 prf.files = qmlog.prf
 prf.path = $$(DESTDIR)/usr/share/qt4/mkspecs/features
