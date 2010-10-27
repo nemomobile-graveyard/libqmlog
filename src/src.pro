@@ -10,10 +10,10 @@ SOURCES += api2.cpp
 target.path = $$(DESTDIR)/usr/lib
 
 usr_include.path = $$(DESTDIR)/usr/include
-usr_include.files = qmlog.h
+usr_include.files = qmlog
 
-usr_include_qmlog.path = $$(DESTDIR)/usr/include/qmlog
-usr_include_qmlog.files = api2.h
+usr_include_libqmlog.path = $$(DESTDIR)/usr/include/libqmlog
+usr_include_libqmlog.files = api2.h
 
 prf.files = qmlog.prf
 prf.path = $$(DESTDIR)/usr/share/qt4/mkspecs/features

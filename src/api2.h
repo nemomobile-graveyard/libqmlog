@@ -1,5 +1,5 @@
-#ifndef QMLOG_API2_H
-#define QMLOG_API2_H
+#ifndef LIBQMLOG_API2_H
+#define LIBQMLOG_API2_H
 
 #include <sys/time.h>
 
@@ -433,4 +433,4 @@ namespace qmlog
   inline void init(const char *name=NULL) { object.init(name) ; }
 }
 
-#endif // QMLOG_DISPATHCER_H
+#endif // LIBQMLOG_API2_H
