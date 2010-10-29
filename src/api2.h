@@ -295,11 +295,18 @@ namespace qmlog
     dispatcher_t *current_dispatcher ;
     dispatcher_t *master ;
     std::set<slave_dispatcher_t *> slaves ;
-  public:
-    log_syslog *syslog_logger ; // TODO: more wrapping to make it private
+    std::string process_name ;
+    log_syslog *syslog_logger ;
     log_stderr *stderr_logger ;
+  public:
+    static std::string calculate_process_name() ;
+    void set_process_name(const std::string &new_name) { process_name = new_name ; }
+    std::string get_process_name() { return process_name ; }
+
+    log_syslog *get_syslog_logger() { return syslog_logger ; }
+    log_stderr *get_stderr_logger() { return stderr_logger ; }
+
     void init(const char *name=NULL) ;
-    static std::string get_process_name() ;
     object_t() ;
     void register_slave(slave_dispatcher_t *) ;
     static inline dispatcher_t *get_current_dispatcher() { return object.current_dispatcher ; }
@@ -446,8 +453,8 @@ namespace qmlog
   inline void init(const char *name=NULL) { object.init(name) ; }
   inline int log_level(int level) { return object.get_current_dispatcher()->log_level(level) ; }
   inline int log_level() { return object.get_current_dispatcher()->log_level() ; }
-  inline log_syslog *syslog() { return object.syslog_logger ; }
-  inline log_stderr *stderr() { return object.stderr_logger ; }
+  inline log_syslog *syslog() { return object.get_syslog_logger() ; }
+  inline log_stderr *stderr() { return object.get_stderr_logger() ; }
   inline void bind_slave(slave_dispatcher_t *s) { object.get_current_dispatcher()->bind_slave(s) ; }
 }
 

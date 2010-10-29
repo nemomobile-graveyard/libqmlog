@@ -25,6 +25,8 @@ namespace qmlog
 
     first = false ;
 
+    process_name = calculate_process_name() ;
+
     // using a nice side effect:
     //   no library name and no process name ->
     //   NULL is used as a name ->
@@ -38,7 +40,7 @@ namespace qmlog
     stderr_logger = new qmlog::log_stderr(qmlog::Full, current_dispatcher) ;
   }
 
-  string object_t::get_process_name()
+  string object_t::calculate_process_name()
   {
     static const char *anonymous = "<unknown>" ;
     const unsigned int len = 256 ;
@@ -91,7 +93,7 @@ namespace qmlog
 
   dispatcher_t::dispatcher_t(const char *name)
   {
-    this->name = (name==NULL) ? object_t::get_process_name() : string(name) ;
+    this->name = (name==NULL) ? object.get_process_name() : string(name) ;
     last_pid = (pid_t) 0 ;
     current_level = qmlog::Full ;
   }
@@ -691,7 +693,7 @@ namespace qmlog
   }
 
   slave_dispatcher_t::slave_dispatcher_t(const char *name, bool attach_name)
-    : dispatcher_t(not attach_name ? name : (string(name)+"|"+object_t::get_process_name()).c_str())
+    : dispatcher_t(not attach_name ? name : (string(name)+"|"+object.get_process_name()).c_str())
   {
     master = NULL ;
   }
