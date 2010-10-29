@@ -3,7 +3,7 @@ TEMPLATE=lib
 QT -= gui
 
 TARGET = qmlog
-INSTALLS = target usr_include usr_include_qmlog prf
+INSTALLS = target usr_include usr_include_libqmlog prf
 
 SOURCES += api2.cpp
 

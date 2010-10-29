@@ -15,7 +15,7 @@ namespace qmlog
 
   object_t::object_t()
   {
-    fprintf(stderr, "%s\n", __PRETTY_FUNCTION__) ;
+    // fprintf(::stderr, "%s\n", __PRETTY_FUNCTION__) ;
     static bool first = true ;
     if(! first)
     {
@@ -25,12 +25,17 @@ namespace qmlog
 
     first = false ;
 
-    slave_dispatcher_t *d = new slave_dispatcher_t("qmlog") ;
-    // TODO: set default options and loggers...
+    // using a nice side effect:
+    //   no library name and no process name ->
+    //   NULL is used as a name ->
+    //   NULL is replaced by the process name
+    slave_dispatcher_t *d = new slave_dispatcher_t(NULL, false) ;
+
     register_slave(d) ;
     current_dispatcher = d ;
     master = NULL ;
-    name = get_process_name() ;
+    syslog_logger = new qmlog::log_syslog(qmlog::Full, current_dispatcher) ;
+    stderr_logger = new qmlog::log_stderr(qmlog::Full, current_dispatcher) ;
   }
 
   string object_t::get_process_name()
@@ -357,7 +362,7 @@ namespace qmlog
       char sign = sec<0 ? (sec = -sec, '-') : '+' ;
       int min = sec/60, hour = min/60 ;
       sec %= 60, min %=60 ;
-      s_gmt_offset.printf("GMT") ;
+      // s_gmt_offset.printf("GMT") ;
       if (sec)
         s_gmt_offset.printf("%c" "%d:%02d:%02d", sign, hour, min, sec) ;
       else if(min)
@@ -442,18 +447,25 @@ namespace qmlog
     dispatcher = d ?: qmlog::object.get_current_dispatcher() ;
     dispatcher->attach(this) ;
     fields = 0 ;
-    enable_fields(Message|Location_Block) ;
-    enable_fields(Process_Block) ;
-    enable_fields(Timezone_Abbreviation) ;
-    enable_fields(Date|Time) ;
-    enable_fields(Multiline) ;
-    enable_fields(Level) ;
+    enable_fields(All_Fields) ;
+    disable_fields(Time_Micro ^ Time) ;
+    disable_fields(Monotonic_Nano ^ Monotonic) ;
   }
 
   int abstract_log_t::log_level(int new_level)
   {
     if (new_level<=max_level)
       level = new_level ;
+    return level ;
+  }
+
+  int abstract_log_t::reduce_max_level(int new_max)
+  {
+    if (new_max > max_level)
+      return level ;
+    max_level = new_max ;
+    if (level > max_level)
+      level = max_level ;
     return level ;
   }
 
@@ -516,10 +528,10 @@ namespace qmlog
         if (tz & qmlog::Timezone_Abbreviation)
         {
           buf.printf("%s", dispatcher->str_tz_abbreviation()) ;
-          tz_separator = ":" ;
+          tz_separator = "," ;
         }
         if (tz & qmlog::Timezone_Offset)
-          buf.printf("%s%s", tz_separator, dispatcher->str_gmt_offset()) ;
+          buf.printf("%s" "GMT" "%s", tz_separator, dispatcher->str_gmt_offset()) ;
         buf.printf(")") ;
         ti_separator = " " ;
       }
@@ -541,7 +553,7 @@ namespace qmlog
         ti_separator = " " ;
       }
       if (fields & qmlog::Timezone_Symlink)
-        buf.printf("%s%s", ti_separator, dispatcher->str_tz_symlink()) ;
+        buf.printf("%s'%s'", ti_separator, dispatcher->str_tz_symlink()) ;
       buf.printf("]") ;
       separator = " " ;
     }
@@ -596,7 +608,7 @@ namespace qmlog
     {
       submit_message(level, buf.c_str()) ;
       buf.rewind(prefix) ;
-      separator = " \\_ " ;
+      separator = " -- " ;
     }
 
     if (message)
@@ -638,24 +650,27 @@ namespace qmlog
   }
 
   log_stderr::log_stderr(int maximal_log_level, dispatcher_t *d)
-    : log_file(stderr, maximal_log_level, d)
+    : log_file(::stderr, maximal_log_level, d)
   {
-    disable_fields(qmlog::Timestamp_Mask) ;
+    disable_fields(Timestamp_Mask &~ Time) ;
+    disable_fields(Timezone_Symlink) ;
   }
 
   log_stdout::log_stdout(int maximal_log_level, dispatcher_t *d)
     : log_file(stdout, maximal_log_level, d)
   {
-    disable_fields(qmlog::Timestamp_Mask) ;
+    disable_fields(Timestamp_Mask) ;
+    disable_fields(Process_Block) ;
+    disable_fields(Timezone_Symlink) ;
   }
 
   log_syslog::log_syslog(int maximal_log_level, dispatcher_t *d)
     : abstract_log_t(maximal_log_level, d)
   {
-    disable_fields(qmlog::Timestamp_Mask) ;
-    disable_fields(qmlog::Process_Block) ;
-    disable_fields(qmlog::Multiline) ;
-    disable_fields(qmlog::Level) ;
+    disable_fields(Timestamp_Mask) ;
+    disable_fields(Process_Block) ;
+    disable_fields(Multiline) ;
+    disable_fields(Timezone_Symlink) ;
     openlog(dispatcher->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
   }
 
@@ -672,7 +687,7 @@ namespace qmlog
     } ;
     assert(qmlog::Internal<=level) ;
     assert(level<=qmlog::Debug) ;
-    syslog(LOG_DAEMON | syslog_names[level-qmlog::Internal], "%s", message) ;
+    ::syslog(LOG_DAEMON | syslog_names[level-qmlog::Internal], "%s", message) ;
   }
 
   slave_dispatcher_t::slave_dispatcher_t(const char *name, bool attach_name)
@@ -692,9 +707,5 @@ namespace qmlog
     dispatcher_t *d = master ? master : this ;
     d->process_message(level, line, file, func, fmt, arg) ;
   }
-
-
-
-
 }
 

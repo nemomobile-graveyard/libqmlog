@@ -144,7 +144,7 @@ void test_growing_length()
   /* the idea here is to test the library for buffer oveflow again */
   /* we're increasing the length of the message step by step */
 
-  /* this will produce a huge amoung of logging output, about 7x50 MB */
+  /* this will produce a huge amount of logging output, about 7x50 MB */
   const unsigned int LEN = 10000 ;
   log_notice("starting every-level logging with a growing message") ;
 
@@ -240,6 +240,9 @@ void test_add_and_remove_logfile()
   /* It's possible to add and remove again additional logging channel */
 
   qmlog::log_file *file = new qmlog::log_file("/tmp/test_add_and_remove_logfile.log") ;
+
+  /* Let's print exact time to this log file */
+  file->enable_fields(qmlog::Monotonic_Nano | qmlog::Time_Micro) ;
 
   /* The next logging output will go to usual places and to the new log file */
   log_notice("the next logging is going to the additional log file as well") ;

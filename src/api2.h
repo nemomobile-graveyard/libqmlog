@@ -55,6 +55,16 @@
 # define log_assert(x, ...) assert(x)
 #endif
 
+#if QMLOG_LEVEL >= QMLOG_INTERNAL
+# if (QMLOG_LOCATION_MASK) & (1<<QMLOG_INTERNAL)
+#  define log_internal(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INTERNAL, QMLOG_LOCATION, ## __VA_ARGS__)
+# else
+#  define log_internal(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INTERNAL, ## __VA_ARGS__)
+# endif
+#else
+# define log_internal(...) (void)(0)
+#endif
+
 #if QMLOG_LEVEL >= QMLOG_CRITICAL
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_CRITICAL)
 #  define log_critical(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_CRITICAL, QMLOG_LOCATION, ## __VA_ARGS__)
@@ -126,6 +136,7 @@ struct smart_buffer
     p = a ;
     len = bytes ;
     pos = 0 ;
+    *p = '\0' ;
   }
 
   unsigned position()
@@ -136,12 +147,12 @@ struct smart_buffer
   void rewind(unsigned at)
   {
     if (at<=pos)
-      pos = at ;
+      p[pos=at] = '\0' ;
   }
 
   void rewind()
   {
-    pos = 0 ;
+    p[pos=0] = '\0' ;
   }
 
   const char *c_str()
@@ -281,11 +292,12 @@ namespace qmlog
   class object_t
   {
     // static object_t object ;
-    std::string name ;
     dispatcher_t *current_dispatcher ;
     dispatcher_t *master ;
     std::set<slave_dispatcher_t *> slaves ;
   public:
+    log_syslog *syslog_logger ; // TODO: more wrapping to make it private
+    log_stderr *stderr_logger ;
     void init(const char *name=NULL) ;
     static std::string get_process_name() ;
     object_t() ;
@@ -377,6 +389,7 @@ namespace qmlog
     int fields ;
   public:
     abstract_log_t(int maximal_log_level, dispatcher_t *d) ;
+    int reduce_max_level(int new_max) ;
     int log_level(int new_level) ;
     int log_level() ;
     int set_fields(int mask) ;
@@ -431,6 +444,11 @@ namespace qmlog
   } ;
 
   inline void init(const char *name=NULL) { object.init(name) ; }
+  inline int log_level(int level) { return object.get_current_dispatcher()->log_level(level) ; }
+  inline int log_level() { return object.get_current_dispatcher()->log_level() ; }
+  inline log_syslog *syslog() { return object.syslog_logger ; }
+  inline log_stderr *stderr() { return object.stderr_logger ; }
+  inline void bind_slave(slave_dispatcher_t *s) { object.get_current_dispatcher()->bind_slave(s) ; }
 }
 
 #endif // LIBQMLOG_API2_H
