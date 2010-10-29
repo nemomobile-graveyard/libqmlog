@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
   {
     if (not true) (void)true ;
 #define run_if_match(x) else if((string)argv[i]==#x) x()
-    run_if_match(run_all) ;
-    run_if_match(test_very_long_string) ;
-    run_if_match(test_growing_length) ;
     run_if_match(test_empty_log_macro) ;
     run_if_match(test_change_log_level) ;
     run_if_match(test_add_and_remove_logfile) ;
+    run_if_match(run_all) ;
+    run_if_match(test_very_long_string) ;
+    run_if_match(test_growing_length) ;
     else
       /* unknow function, log it as a non-critical error */
       log_error(false, "invalid function name: '%s'", argv[i]) ;

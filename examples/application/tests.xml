@@ -5,20 +5,31 @@
         <scratchbox>false</scratchbox>
         <hardware>true</hardware>
       </environments>
+      <!--
       <case name="log_with_init" description="call init and do some logging">
         <step>logtest log_with_init</step>
       </case>
       <case name="log_without_init" description="just do some logging">
         <step>logtest log_without_init</step>
       </case>
+      -->
+      <case name="test_empty_log_macro" description="logging without message">
+        <step>qmlog-example test_empty_log_macro</step>
+      </case>
+      <case name="test_change_log_level" description="increasing and reducing log level">
+        <step>qmlog-example test_change_log_level</step>
+      </case>
+      <case name="test_add_and_remove_logfile" description="log file">
+        <step>qmlog-example test_add_and_remove_logfile</step>
+      </case>
       <case name="test_very_long_string" description="a huge message">
-        <step>logtest test_very_long_string</step>
+        <step>qmlog-example test_very_long_string</step>
       </case>
       <case name="test_growing_length" description="find exact threshold for buffer overflow">
-        <step>logtest test_growing_length</step>
+        <step>qmlog-example test_growing_length</step>
       </case>
-      <case name="logtest" description="all simple tests in one run">
-        <step>logtest</step>
+      <case name="run_all" description="all (but heavy) simple tests in one run">
+        <step>qmlog-example run_all</step>
       </case>
     </set>
   </suite>
