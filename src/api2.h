@@ -245,7 +245,7 @@ namespace qmlog
     Time                  = 1 << 11,
     Time2                 = 1 << 12,
     Time3                 = 1 << 13,
-    Time4                 = 1 << 14, // unused
+    // Time4                 = 1 << 14, // unused
     Time_Milli            = Time|Time2,
     Time_Micro            = Time|Time2|Time3,
     Timezone_Symlink      = 1 << 15,
@@ -254,7 +254,7 @@ namespace qmlog
     Level                 = 1 << 18,
 
     Monotonic_Mask        = Monotonic|Monotonic2|Monotonic3|Monotonic4,
-    Time_Mask             = Time|Time2|Time3|Time4,
+    Time_Mask             = Time|Time2|Time3,
     Timestamp_Mask        = Monotonic_Mask|Time_Mask|Date|Timezone_Abbreviation|Timezone_Offset,
     Time_Info_Block       = Timestamp_Mask|Timezone_Symlink,
     Timezone_Tm_Block     = Timezone_Offset|Timezone_Abbreviation,
