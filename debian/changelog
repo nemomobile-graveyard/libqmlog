@@ -1,8 +1,9 @@
 qmlog (0.0.7) unstable; urgency=low
 
   * usging new API (api2.*)
+  * Fixes: NB#187227
 
- -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Sun, 31 Oct 2010 18:30:20 +0200
+ -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Sun, 31 Oct 2010 23:48:53 +0200
 
 qmlog (0.0.6) unstable; urgency=low
 
