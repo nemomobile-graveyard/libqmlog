@@ -1,8 +1,8 @@
 qmlog (0.0.7) unstable; urgency=low
 
-  * new version
+  * usging new API (api2.*)
 
- -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Mon, 25 Oct 2010 15:25:27 +0300
+ -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Sun, 31 Oct 2010 18:30:20 +0200
 
 qmlog (0.0.6) unstable; urgency=low
 

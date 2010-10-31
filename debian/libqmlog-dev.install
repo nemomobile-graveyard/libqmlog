@@ -1,4 +1,4 @@
-usr/include/qm
+usr/include/
 usr/lib/libqmlog.so
 
 usr/share/qt4/mkspecs/features/qmlog.prf
