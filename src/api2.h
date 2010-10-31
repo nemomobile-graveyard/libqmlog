@@ -11,8 +11,8 @@
 #include <string>
 #include <set>
 
-#ifndef QMLOG_DEFAULT_DISPATCHER
-#define QMLOG_DEFAULT_DISPATCHER qmlog::object.get_current_dispatcher()
+#ifndef QMLOG_DISPATCHER
+#define QMLOG_DISPATCHER qmlog::object.get_default_dispatcher()
 #endif
 
 #define QMLOG_NONE     0
@@ -48,8 +48,8 @@
 #include <cassert>
 
 #if QMLOG_LEVEL >= QMLOG_INTERNAL
-# define log_abort(...) do { (QMLOG_DEFAULT_DISPATCHER)->message_abortion(QMLOG_ABORTION, QMLOG_LOCATION, ##__VA_ARGS__) ; assert(0) ; } while(0)
-# define log_assert(x, ...) do if(not(x)) { (QMLOG_DEFAULT_DISPATCHER)->message_failed_assertion(QMLOG_ABORTION, #x, QMLOG_LOCATION, ##__VA_ARGS__) ; assert(0) ; } while(0)
+# define log_abort(...) do { (QMLOG_DISPATCHER)->message_abortion(QMLOG_ABORTION, QMLOG_LOCATION, ##__VA_ARGS__) ; assert(0) ; } while(0)
+# define log_assert(x, ...) do if(not(x)) { (QMLOG_DISPATCHER)->message_failed_assertion(QMLOG_ABORTION, #x, QMLOG_LOCATION, ##__VA_ARGS__) ; assert(0) ; } while(0)
 #else
 # define log_abort(...) assert(0)
 # define log_assert(x, ...) assert(x)
@@ -57,9 +57,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_INTERNAL
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_INTERNAL)
-#  define log_internal(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INTERNAL, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_internal(...) (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_internal(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INTERNAL, ## __VA_ARGS__)
+#  define log_internal(...) (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, ## __VA_ARGS__)
 # endif
 #else
 # define log_internal(...) (void)(0)
@@ -67,9 +67,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_CRITICAL
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_CRITICAL)
-#  define log_critical(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_CRITICAL, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_critical(...) (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_critical(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_CRITICAL, ## __VA_ARGS__)
+#  define log_critical(...) (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, ## __VA_ARGS__)
 # endif
 #else
 # define log_critical(...) (void)(0)
@@ -77,9 +77,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_ERROR
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_ERROR)
-#  define log_error(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_ERROR, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_error(...) (QMLOG_DISPATCHER)->message(QMLOG_ERROR, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_error(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_ERROR, ## __VA_ARGS__)
+#  define log_error(...) (QMLOG_DISPATCHER)->message(QMLOG_ERROR, ## __VA_ARGS__)
 # endif
 #else
 # define log_error(...) (void)(0)
@@ -87,9 +87,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_WARNING
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_WARNING)
-#  define log_warning(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_WARNING, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_warning(...) (QMLOG_DISPATCHER)->message(QMLOG_WARNING, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_warning(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_WARNING, ## __VA_ARGS__)
+#  define log_warning(...) (QMLOG_DISPATCHER)->message(QMLOG_WARNING, ## __VA_ARGS__)
 # endif
 #else
 # define log_warning(...) (void)(0)
@@ -97,9 +97,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_NOTICE
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_NOTICE)
-#  define log_notice(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_NOTICE, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_notice(...) (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_notice(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_NOTICE, ## __VA_ARGS__)
+#  define log_notice(...) (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, ## __VA_ARGS__)
 # endif
 #else
 # define log_notice(...) (void)(0)
@@ -107,9 +107,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_INFO
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_INFO)
-#  define log_info(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INFO, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_info(...) (QMLOG_DISPATCHER)->message(QMLOG_INFO, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_info(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_INFO, ## __VA_ARGS__)
+#  define log_info(...) (QMLOG_DISPATCHER)->message(QMLOG_INFO, ## __VA_ARGS__)
 # endif
 #else
 # define log_info(...) (void)(0)
@@ -117,9 +117,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_DEBUG
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_DEBUG)
-#  define log_debug(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_DEBUG, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_debug(...) (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, QMLOG_LOCATION, ## __VA_ARGS__)
 # else
-#  define log_debug(...) (QMLOG_DEFAULT_DISPATCHER)->message(QMLOG_DEBUG, ## __VA_ARGS__)
+#  define log_debug(...) (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, ## __VA_ARGS__)
 # endif
 #else
 # define log_debug(...) (void)(0)
@@ -279,7 +279,6 @@ namespace qmlog
 
   class object_t ;
   class dispatcher_t ;
-  class slave_dispatcher_t ;
   class abstract_log_t ;
   class log_file ;
   class log_stderr ;
@@ -291,32 +290,37 @@ namespace qmlog
 
   class object_t
   {
-    // static object_t object ;
-    dispatcher_t *current_dispatcher ;
-    dispatcher_t *master ;
-    std::set<slave_dispatcher_t *> slaves ;
+    dispatcher_t *default_dispatcher ;
+    abstract_log_t *syslog_logger, *stderr_logger ;
+  private:
     std::string process_name ;
-    log_syslog *syslog_logger ;
-    log_stderr *stderr_logger ;
-  public:
     static std::string calculate_process_name() ;
-    void set_process_name(const std::string &new_name) { process_name = new_name ; }
+  private:
+    std::set<dispatcher_t *> dispatchers ;
+    void register_dispatcher(dispatcher_t *d) { dispatchers.insert(d) ; }
+    void unregister_dispatcher(dispatcher_t *d) { dispatchers.erase(d) ; }
+    friend class dispatcher_t ; // for 2 above methods only
+  public:
+    void set_process_name(const std::string &new_name) ;
     std::string get_process_name() { return process_name ; }
 
-    log_syslog *get_syslog_logger() { return syslog_logger ; }
-    log_stderr *get_stderr_logger() { return stderr_logger ; }
+    abstract_log_t *get_syslog_logger() { return syslog_logger ; }
+    abstract_log_t *get_stderr_logger() { return stderr_logger ; }
 
     void init(const char *name=NULL) ;
     object_t() ;
+#if 0
     void register_slave(slave_dispatcher_t *) ;
-    static inline dispatcher_t *get_current_dispatcher() { return object.current_dispatcher ; }
+#endif
+    dispatcher_t *get_default_dispatcher() { return default_dispatcher ; }
   } ;
 
   class dispatcher_t
   {
     std::string name ;
     std::set<abstract_log_t *> logs ;
-    std::set<slave_dispatcher_t*> slaves ;
+    std::set<dispatcher_t*> slaves ;
+    dispatcher_t *proxy ;
 
     void get_timestamp() ;
     bool got_timestamp ;
@@ -352,15 +356,18 @@ namespace qmlog
     dynamic_buffer s_pid ;
 
     int current_level ;
+  protected:
+    virtual void set_process_name(const std::string &new_name) ;
+    friend class object_t ; // qmlog::object will call set_process_name()
   public:
-    dispatcher_t(const char *name=NULL) ;
+    dispatcher_t() ;
     virtual ~dispatcher_t() ;
     int log_level(int new_level) ;
     int log_level() ;
     void attach(abstract_log_t *) ;
     void detach(abstract_log_t *) ;
-    void bind_slave(slave_dispatcher_t *) ;
-    void release_slave(slave_dispatcher_t *) ;
+    void set_proxy(dispatcher_t *) ;
+    // void unregister_slave(dispatcher_t *) ;
     void message(int level) ;
     void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
     void message(int level, int line, const char *file, const char *func) ;
@@ -370,8 +377,7 @@ namespace qmlog
     void message_abortion(bool abortion, int line, const char *file, const char *func) ;
     void message_abortion(bool abortion, int line, const char *file, const char *func, const char *fmt, ...) __attribute__((format(printf,6,7))) ;
     void message_ndebug(bool abortion) ;
-    virtual void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
-    void process_message(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
+    void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
     const char *str_monotonic() ;
     const char *str_monotonic_nano() ;
     const char *str_monotonic_micro() ;
@@ -441,6 +447,7 @@ namespace qmlog
     void submit_message(int level, const char *message) ;
   } ;
 
+#if 0
   class slave_dispatcher_t : public dispatcher_t
   {
   public:
@@ -449,13 +456,52 @@ namespace qmlog
    ~slave_dispatcher_t() ;
     void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
   } ;
+#endif
 
-  inline void init(const char *name=NULL) { object.init(name) ; }
-  inline int log_level(int level) { return object.get_current_dispatcher()->log_level(level) ; }
-  inline int log_level() { return object.get_current_dispatcher()->log_level() ; }
-  inline log_syslog *syslog() { return object.get_syslog_logger() ; }
-  inline log_stderr *stderr() { return object.get_stderr_logger() ; }
-  inline void bind_slave(slave_dispatcher_t *s) { object.get_current_dispatcher()->bind_slave(s) ; }
+  static inline dispatcher_t *dispatcher() __attribute__((always_inline)) ;
+  static inline dispatcher_t *dispatcher() // __attribute__((always_inline))
+  {
+    return QMLOG_DISPATCHER ;
+  }
+
+  // static inline void init(const char *name=NULL) { object.init(name) ; }
+  static inline int log_level(int level)
+  {
+    return dispatcher()->log_level(level) ;
+  }
+
+  static inline int log_level()
+  {
+    return dispatcher()->log_level() ;
+  }
+
+#if 0
+  static inline void bind(dispatcher_t *s)
+  {
+    dispatcher()->bind_slave(s) ;
+  }
+#endif
+
+  static inline abstract_log_t *syslog()
+  {
+    return object.get_syslog_logger() ;
+  }
+
+  static inline abstract_log_t *stderr()
+  {
+    return object.get_stderr_logger() ;
+  }
+
+  static inline std::string process_name()
+  {
+    return object.get_process_name() ;
+  }
+
+  static inline void process_name(const std::string &new_name)
+  {
+    object.set_process_name(new_name) ;
+  }
+
 }
 
 #endif // LIBQMLOG_API2_H

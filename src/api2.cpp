@@ -17,27 +17,22 @@ namespace qmlog
   {
     // fprintf(::stderr, "%s\n", __PRETTY_FUNCTION__) ;
     static bool first = true ;
-    if(! first)
+    if (not first)
     {
-      // TODO: Log this as an error somehow....
-      return ; // ... and do nothing else
+      // log this as an error using already constructed object...
+      // ... and do nothing else
+      log_internal("singleton initializer called again") ;
+      return ;
     }
 
     first = false ;
 
-    process_name = calculate_process_name() ;
+    register_dispatcher(default_dispatcher=new dispatcher_t) ;
+    syslog_logger = new qmlog::log_syslog(qmlog::Full, default_dispatcher) ;
+    stderr_logger = new qmlog::log_stderr(qmlog::Full, default_dispatcher) ;
+    fprintf(::stderr, "syslog_logger=%p, stderr_logger=%p\n", syslog_logger, stderr_logger) ;
 
-    // using a nice side effect:
-    //   no library name and no process name ->
-    //   NULL is used as a name ->
-    //   NULL is replaced by the process name
-    slave_dispatcher_t *d = new slave_dispatcher_t(NULL, false) ;
-
-    register_slave(d) ;
-    current_dispatcher = d ;
-    master = NULL ;
-    syslog_logger = new qmlog::log_syslog(qmlog::Full, current_dispatcher) ;
-    stderr_logger = new qmlog::log_stderr(qmlog::Full, current_dispatcher) ;
+    set_process_name(calculate_process_name()) ;
   }
 
   string object_t::calculate_process_name()
@@ -74,6 +69,14 @@ namespace qmlog
     return q+1 ;
   }
 
+  void object_t::set_process_name(const string &new_name)
+  {
+    process_name = new_name ;
+    for(set<dispatcher_t*>::iterator it=dispatchers.begin(); it!=dispatchers.end(); ++it)
+      (*it)->set_process_name(process_name) ;
+  }
+
+#if 0
   void object_t::init(const char *name)
   {
     static bool first = true ;
@@ -85,24 +88,35 @@ namespace qmlog
 
     current_dispatcher = master = new dispatcher_t(name) ;
   }
+#endif
 
+#if 0
   void object_t::register_slave(slave_dispatcher_t *d)
   {
     slaves.insert(d) ;
   }
+#endif
 
-  dispatcher_t::dispatcher_t(const char *name)
+  dispatcher_t::dispatcher_t()
   {
-    this->name = (name==NULL) ? object.get_process_name() : string(name) ;
+    object.register_dispatcher(this) ;
+    name = object.get_process_name() ;
     last_pid = (pid_t) 0 ;
     current_level = qmlog::Full ;
+    proxy = NULL ;
   }
 
   dispatcher_t::~dispatcher_t()
   {
-    set<slave_dispatcher_t*> slaves_copy = slaves ;
-    for(set<slave_dispatcher_t*>::const_iterator it=slaves_copy.begin(); it!=slaves_copy.end(); ++it)
-      release_slave(*it) ;
+    object.unregister_dispatcher(this) ;
+    set<dispatcher_t*> slaves_copy = slaves ;
+    for(set<dispatcher_t*>::const_iterator it=slaves_copy.begin(); it!=slaves_copy.end(); ++it)
+      (*it)->set_proxy(proxy) ;
+  }
+
+  void dispatcher_t::set_process_name(const string &new_name)
+  {
+    name = new_name ;
   }
 
   int dispatcher_t::log_level(int new_level)
@@ -125,6 +139,18 @@ namespace qmlog
     logs.erase(l) ;
   }
 
+  void dispatcher_t::set_proxy(dispatcher_t *pd)
+  {
+    if (pd==proxy)
+      return ;
+    if (proxy) // unregister at current proxy
+      proxy->slaves.erase(this) ;
+    if (pd) // register at the new one
+      pd->slaves.insert(this) ;
+    proxy = pd ;
+  }
+
+#if 0
   void dispatcher_t::bind_slave(slave_dispatcher_t *d)
   {
     slaves.insert(d) ;
@@ -136,6 +162,7 @@ namespace qmlog
     d->master = NULL ;
     slaves.erase(d) ;
   }
+#endif
 
   void dispatcher_t::message(int level)
   {
@@ -225,8 +252,14 @@ namespace qmlog
       message(QMLOG_INTERNAL, "the program execution will be continued as abortion was disabled at compile time") ;
   }
 
-  void dispatcher_t::process_message(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
+  void dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
   {
+    if (proxy)
+    {
+      proxy  -> generic(level, line, file, func, fmt, arg) ;
+      return ;
+    }
+
     got_timestamp = got_localtime =
       has_monotonic = has_monotonic_nano = has_monotonic_micro = has_monotonic_milli =
       has_gmt_offset = has_tz_symlink =
@@ -235,11 +268,6 @@ namespace qmlog
     for(set<abstract_log_t*>::iterator it=logs.begin(); it!=logs.end(); ++it)
       if (level<=(*it)->log_level())
         (*it)->compose_message(level, line, file, func, fmt, arg) ;
-  }
-
-  void dispatcher_t::generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg)
-  {
-    this->process_message(level, line, file, func, fmt, arg) ;
   }
 
   void dispatcher_t::get_timestamp()
@@ -446,7 +474,7 @@ namespace qmlog
   abstract_log_t::abstract_log_t(int maximal_log_level, dispatcher_t *d)
   {
     level = max_level = maximal_log_level ;
-    dispatcher = d ?: qmlog::object.get_current_dispatcher() ;
+    dispatcher = d ?: object.get_default_dispatcher() ;
     dispatcher->attach(this) ;
     fields = 0 ;
     enable_fields(All_Fields) ;
@@ -633,7 +661,7 @@ namespace qmlog
     : abstract_log_t(maximal_log_level, d)
   {
     this->fp = fp ;
-    to_be_closed = fp != NULL ;
+    to_be_closed = false ;
   }
 
   log_file::~log_file()
@@ -654,8 +682,8 @@ namespace qmlog
   log_stderr::log_stderr(int maximal_log_level, dispatcher_t *d)
     : log_file(::stderr, maximal_log_level, d)
   {
-    disable_fields(Timestamp_Mask &~ Time) ;
-    disable_fields(Timezone_Symlink) ;
+    disable_fields(Timestamp_Mask) ;
+    enable_fields(Time) ;
   }
 
   log_stdout::log_stdout(int maximal_log_level, dispatcher_t *d)
@@ -663,7 +691,6 @@ namespace qmlog
   {
     disable_fields(Timestamp_Mask) ;
     disable_fields(Process_Block) ;
-    disable_fields(Timezone_Symlink) ;
   }
 
   log_syslog::log_syslog(int maximal_log_level, dispatcher_t *d)
@@ -692,6 +719,7 @@ namespace qmlog
     ::syslog(LOG_DAEMON | syslog_names[level-qmlog::Internal], "%s", message) ;
   }
 
+#if 0
   slave_dispatcher_t::slave_dispatcher_t(const char *name, bool attach_name)
     : dispatcher_t(not attach_name ? name : (string(name)+"|"+object.get_process_name()).c_str())
   {
@@ -709,5 +737,6 @@ namespace qmlog
     dispatcher_t *d = master ? master : this ;
     d->process_message(level, line, file, func, fmt, arg) ;
   }
+#endif
 }
 
