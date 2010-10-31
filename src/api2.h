@@ -1,3 +1,16 @@
+/*
+ * Harmattan warning:
+ *
+ * The API decribed in this file is quite unstable.
+ * Binary uncompatible changes happen often.
+ * Even changes causing source level uncompatibility are happening sometimes.
+ *
+ * Before you decided to use this library in Harmattan program,
+ * please contact one of the authors (listed above).
+ *
+ */
+
+
 #ifndef LIBQMLOG_API2_H
 #define LIBQMLOG_API2_H
 
