@@ -3,6 +3,7 @@
 #   Copyright (C) 2010 Nokia Corporation.                                $
 #                                                                        $
 #   Author: Ilya Dogolazky <ilya.dogolazky@nokia.com>                    $
+#   Author: Victor Portnov <ext-victor.portnov@nokia.com>                $
 #                                                                        $
 #     This file is part of qmlog                                         $
 #                                                                        $
@@ -305,4 +306,3 @@ void log_with_init()
   log_warning("========== with init done ==========");
 }
 #endif
-
