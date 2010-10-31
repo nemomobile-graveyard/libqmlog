@@ -19,6 +19,7 @@
 #   You should have received a copy of the GNU  Lesser General Public    $
 #   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
 \_______________________________________________________________________*/
+
 /*
  * Harmattan warning:
  *
@@ -31,16 +32,16 @@
  *
  */
 
-
 #ifndef LIBQMLOG_API2_H
 #define LIBQMLOG_API2_H
 
-#include <sys/time.h>
-
-#include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
+#include <sys/time.h>
+
+#include <cassert>
+#include <cstring>
+#include <cstdio>
 
 #include <string>
 #include <set>
@@ -78,8 +79,6 @@
 #else
 #define QMLOG_ABORTION 1
 #endif
-
-#include <cassert>
 
 #if QMLOG_LEVEL >= QMLOG_INTERNAL
 # define log_abort(...) do { (QMLOG_DISPATCHER)->message_abortion(QMLOG_ABORTION, QMLOG_LOCATION, ##__VA_ARGS__) ; assert(0) ; } while(0)
@@ -343,9 +342,6 @@ namespace qmlog
 
     void init(const char *name=NULL) ;
     object_t() ;
-#if 0
-    void register_slave(slave_dispatcher_t *) ;
-#endif
     dispatcher_t *get_default_dispatcher() { return default_dispatcher ; }
   } ;
 
@@ -401,7 +397,6 @@ namespace qmlog
     void attach(abstract_log_t *) ;
     void detach(abstract_log_t *) ;
     void set_proxy(dispatcher_t *) ;
-    // void unregister_slave(dispatcher_t *) ;
     void message(int level) ;
     void message(int level, const char *fmt, ...) __attribute__((format(printf,3,4))) ;
     void message(int level, int line, const char *file, const char *func) ;
@@ -481,24 +476,13 @@ namespace qmlog
     void submit_message(int level, const char *message) ;
   } ;
 
-#if 0
-  class slave_dispatcher_t : public dispatcher_t
-  {
-  public:
-    dispatcher_t *master ;
-    slave_dispatcher_t(const char *name, bool attach_name=true) ;
-   ~slave_dispatcher_t() ;
-    void generic(int level, int line, const char *file, const char *func, const char *fmt, va_list arg) ;
-  } ;
-#endif
-
   static inline dispatcher_t *dispatcher() __attribute__((always_inline)) ;
-  static inline dispatcher_t *dispatcher() // __attribute__((always_inline))
+
+  static inline dispatcher_t *dispatcher()
   {
     return QMLOG_DISPATCHER ;
   }
 
-  // static inline void init(const char *name=NULL) { object.init(name) ; }
   static inline int log_level(int level)
   {
     return dispatcher()->log_level(level) ;
@@ -508,13 +492,6 @@ namespace qmlog
   {
     return dispatcher()->log_level() ;
   }
-
-#if 0
-  static inline void bind(dispatcher_t *s)
-  {
-    dispatcher()->bind_slave(s) ;
-  }
-#endif
 
   static inline abstract_log_t *syslog()
   {
