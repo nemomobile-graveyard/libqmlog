@@ -36,6 +36,10 @@ namespace qmlog
 
   object_t::object_t()
   {
+    default_dispatcher = NULL ;
+    syslog_logger = NULL ;
+    stderr_logger = NULL ;
+
     // fprintf(::stderr, "%s\n", __PRETTY_FUNCTION__) ;
     static bool first = true ;
     if (not first)
@@ -49,11 +53,18 @@ namespace qmlog
     first = false ;
 
     register_dispatcher(default_dispatcher=new dispatcher_t) ;
-    syslog_logger = new qmlog::log_syslog(qmlog::Full, default_dispatcher) ;
-    stderr_logger = new qmlog::log_stderr(qmlog::Full, default_dispatcher) ;
+    new qmlog::log_syslog(qmlog::Full, default_dispatcher) ;
+    new qmlog::log_stderr(qmlog::Full, default_dispatcher) ;
     fprintf(::stderr, "syslog_logger=%p, stderr_logger=%p\n", syslog_logger, stderr_logger) ;
 
     set_process_name(calculate_process_name()) ;
+  }
+
+  object_t::~object_t()
+  {
+    set<dispatcher_t*> d_copy = dispatchers ;
+    for(set<dispatcher_t*>::iterator it=d_copy.begin(); it!=d_copy.end(); ++it)
+      delete *it ;
   }
 
   string object_t::calculate_process_name()
@@ -133,6 +144,8 @@ namespace qmlog
     set<dispatcher_t*> slaves_copy = slaves ;
     for(set<dispatcher_t*>::const_iterator it=slaves_copy.begin(); it!=slaves_copy.end(); ++it)
       (*it)->set_proxy(proxy) ;
+    for(set<abstract_log_t*>::const_iterator it=logs.begin(); it!=logs.end(); ++it)
+      delete *it ;
   }
 
   void dispatcher_t::set_process_name(const string &new_name)
@@ -705,6 +718,14 @@ namespace qmlog
   {
     disable_fields(Timestamp_Mask) ;
     enable_fields(Time) ;
+    if (not object.stderr_logger)
+      object.stderr_logger = this ;
+  }
+
+  log_stderr::~log_stderr()
+  {
+    if (object.stderr_logger==this)
+      object.stderr_logger = NULL ;
   }
 
   log_stdout::log_stdout(int maximal_log_level, dispatcher_t *d)
@@ -722,11 +743,15 @@ namespace qmlog
     disable_fields(Multiline) ;
     disable_fields(Timezone_Symlink) ;
     openlog(dispatcher->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
+    if (not object.syslog_logger)
+      object.syslog_logger = this ;
   }
 
   log_syslog::~log_syslog()
   {
     closelog() ;
+    if (object.syslog_logger==this)
+      object.syslog_logger = NULL ;
   }
 
   void log_syslog::submit_message(int level, const char *message)

@@ -28,6 +28,9 @@
       <case name="test_growing_length" description="find exact threshold for buffer overflow">
         <step>qmlog-example test_growing_length 2>/dev/null</step>
       </case>
+      <case name="test_remove_default_loggers" description="removing loggers, testing for a crash">
+        <step>qmlog-example test_remove_default_loggers</step>
+      </case>
       <case name="run_all" description="all (but heavy) simple tests in one run">
         <step>qmlog-example run_all</step>
       </case>

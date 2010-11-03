@@ -29,6 +29,7 @@ void test_growing_length() ;
 void test_empty_log_macro() ;
 void test_change_log_level() ;
 void test_add_and_remove_logfile() ;
+void test_remove_default_loggers() ;
 void run_all() ;
 
 int main(int argc, char *argv[])
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
     run_if_match(run_all) ;
     run_if_match(test_very_long_string) ;
     run_if_match(test_growing_length) ;
+    run_if_match(test_remove_default_loggers) ;
     else
       /* unknow function, log it as a non-critical error */
       log_error(false, "invalid function name: '%s'", argv[i]) ;
@@ -306,3 +308,12 @@ void log_with_init()
   log_warning("========== with init done ==========");
 }
 #endif
+
+
+void test_remove_default_loggers()
+{
+  log_notice("last message: deleting stderr & syslog loggers") ;
+  delete qmlog::stderr() ;
+  delete qmlog::syslog() ;
+  log_notice("this message shouldn't be visible") ;
+}

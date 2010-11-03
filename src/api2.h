@@ -337,11 +337,14 @@ namespace qmlog
     void set_process_name(const std::string &new_name) ;
     std::string get_process_name() { return process_name ; }
 
+    friend class log_syslog ;
+    friend class log_stderr ;
     abstract_log_t *get_syslog_logger() { return syslog_logger ; }
     abstract_log_t *get_stderr_logger() { return stderr_logger ; }
 
     void init(const char *name=NULL) ;
     object_t() ;
+   ~object_t() ;
     dispatcher_t *get_default_dispatcher() { return default_dispatcher ; }
   } ;
 
@@ -458,7 +461,7 @@ namespace qmlog
   {
   public:
     log_stderr(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
-   ~log_stderr() { }
+   ~log_stderr() ;
   } ;
 
   class log_stdout : public log_file

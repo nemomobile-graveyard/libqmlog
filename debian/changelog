@@ -1,3 +1,10 @@
+qmlog (0.0.8) unstable; urgency=low
+
+  * Fixes: NB#202297 - false positive memory leak
+  * Added destructors
+
+ -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Wed, 03 Nov 2010 22:10:10 +0200
+
 qmlog (0.0.7) unstable; urgency=low
 
   * usging new API (api2.*)
