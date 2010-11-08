@@ -24,7 +24,7 @@
  * Harmattan warning:
  *
  * The API decribed in this file is quite unstable.
- * Binary uncompatible changes happen often.
+ * Binary incompatible changes happen often.
  * Even changes causing source level uncompatibility are happening sometimes.
  *
  * Before you decided to use this library in Harmattan program,
