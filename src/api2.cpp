@@ -55,7 +55,7 @@ namespace qmlog
     register_dispatcher(default_dispatcher=new dispatcher_t) ;
     new qmlog::log_syslog(qmlog::Full, default_dispatcher) ;
     new qmlog::log_stderr(qmlog::Full, default_dispatcher) ;
-    fprintf(::stderr, "syslog_logger=%p, stderr_logger=%p\n", syslog_logger, stderr_logger) ;
+    // fprintf(::stderr, "syslog_logger=%p, stderr_logger=%p\n", syslog_logger, stderr_logger) ;
 
     set_process_name(calculate_process_name()) ;
   }
