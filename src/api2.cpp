@@ -144,8 +144,14 @@ namespace qmlog
     set<dispatcher_t*> slaves_copy = slaves ;
     for(set<dispatcher_t*>::const_iterator it=slaves_copy.begin(); it!=slaves_copy.end(); ++it)
       (*it)->set_proxy(proxy) ;
-    for(set<abstract_log_t*>::const_iterator it=logs.begin(); it!=logs.end(); ++it)
-      delete *it ;
+    set<abstract_log_t*> logs_copy = logs ;
+    for(set<abstract_log_t*>::const_iterator it=logs_copy.begin(); it!=logs_copy.end(); ++it)
+    {
+      abstract_log_t *l = *it ;
+      detach(l) ;
+      if (l->d_counter()==0)
+        delete *it ;
+    }
   }
 
   void dispatcher_t::set_process_name(const string &new_name)
@@ -166,11 +172,13 @@ namespace qmlog
   void dispatcher_t::attach(abstract_log_t *l)
   {
     logs.insert(l) ;
+    l->dispatchers.insert(this) ;
   }
 
   void dispatcher_t::detach(abstract_log_t *l)
   {
     logs.erase(l) ;
+    l->dispatchers.erase(this) ;
   }
 
   void dispatcher_t::set_proxy(dispatcher_t *pd)
@@ -301,7 +309,7 @@ namespace qmlog
 
     for(set<abstract_log_t*>::iterator it=logs.begin(); it!=logs.end(); ++it)
       if (level<=(*it)->log_level())
-        (*it)->compose_message(level, line, file, func, fmt, arg) ;
+        (*it)->compose_message(this, level, line, file, func, fmt, arg) ;
   }
 
   void dispatcher_t::get_timestamp()
@@ -508,8 +516,8 @@ namespace qmlog
   abstract_log_t::abstract_log_t(int maximal_log_level, dispatcher_t *d)
   {
     level = max_level = maximal_log_level ;
-    dispatcher = d ?: object.get_default_dispatcher() ;
-    dispatcher->attach(this) ;
+    dispatcher_t *dd = d ?: object.get_default_dispatcher() ;
+    dd->attach(this) ;
     fields = 0 ;
     enable_fields(All_Fields) ;
     disable_fields(Time_Micro ^ Time) ;
@@ -560,10 +568,12 @@ namespace qmlog
 
   abstract_log_t::~abstract_log_t()
   {
-    dispatcher->detach(this) ;
+    set<dispatcher_t*> d_copy = dispatchers ;
+    for(set<dispatcher_t*>::iterator it=d_copy.begin(); it!=d_copy.end(); ++it)
+      (*it)->detach(this) ;
   }
 
-  void abstract_log_t::compose_message(int level, int line, const char *file, const char *func, const char *fmt, va_list args)
+  void abstract_log_t::compose_message(dispatcher_t *dispatcher, int level, int line, const char *file, const char *func, const char *fmt, va_list args)
   {
     smart_buffer<1024> buf ;
     const char *separator = "" ;
@@ -670,7 +680,7 @@ namespace qmlog
 
     if (wrap)
     {
-      submit_message(level, buf.c_str()) ;
+      submit_message(dispatcher, level, buf.c_str()) ;
       buf.rewind(prefix) ;
       separator = " -- " ;
     }
@@ -681,20 +691,22 @@ namespace qmlog
       buf.vprintf(fmt, args) ;
     }
 
-    submit_message(level, buf.c_str()) ;
+    submit_message(dispatcher, level, buf.c_str()) ;
   }
 
   log_file::log_file(const char *path, int maximal_log_level, dispatcher_t *d)
-    : abstract_log_t(maximal_log_level, d)
+    : abstract_log_t(maximal_log_level, d), file_path(path)
   {
-    fp = fopen(path, "a") ;
-    to_be_closed = fp != NULL ;
+    fp = NULL ;
+    failed = false ;
+    to_be_closed = false ;
   }
 
   log_file::log_file(FILE *fp, int maximal_log_level, dispatcher_t *d)
     : abstract_log_t(maximal_log_level, d)
   {
     this->fp = fp ;
+    failed = fp == NULL ; // don't try reopen non existing path, even if fp is NULL
     to_be_closed = false ;
   }
 
@@ -704,13 +716,24 @@ namespace qmlog
       fclose(fp) ;
   }
 
-  void log_file::submit_message(int /* level */, const char *message)
+  void log_file::submit_message(dispatcher_t *, int /* level */, const char *message)
   {
-    if (fp!=NULL)
+    if (fp==NULL)
     {
-      fprintf(fp, "%s\n", message) ;
-      fflush(fp) ;
+      if (failed) // don't try to open it again
+        return ;
+      fp = fopen(file_path.c_str(), "a") ;
+      if (fp==NULL)
+      {
+        failed = true ; /* to_be_closed is already 'false' */
+        return ;
+      }
+      else
+        to_be_closed = true ;
     }
+
+    fprintf(fp, "%s\n", message) ;
+    fflush(fp) ;
   }
 
   log_stderr::log_stderr(int maximal_log_level, dispatcher_t *d)
@@ -742,20 +765,26 @@ namespace qmlog
     disable_fields(Process_Block) ;
     disable_fields(Multiline) ;
     disable_fields(Timezone_Symlink) ;
-    openlog(dispatcher->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
+    initialized = false ;
     if (not object.syslog_logger)
       object.syslog_logger = this ;
   }
 
   log_syslog::~log_syslog()
   {
-    closelog() ;
+    if (initialized)
+      closelog() ;
     if (object.syslog_logger==this)
       object.syslog_logger = NULL ;
   }
 
-  void log_syslog::submit_message(int level, const char *message)
+  void log_syslog::submit_message(dispatcher_t *d, int level, const char *message)
   {
+    if (not initialized)
+    {
+      openlog(d->str_name(), LOG_PID | LOG_NDELAY, LOG_DAEMON);
+      initialized = true ;
+    }
     static int syslog_names[] =
     {
       LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG

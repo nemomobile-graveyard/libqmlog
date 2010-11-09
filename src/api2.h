@@ -45,6 +45,7 @@
 
 #include <string>
 #include <set>
+#include <string>
 
 #ifndef QMLOG_DISPATCHER
 #define QMLOG_DISPATCHER qmlog::object.get_default_dispatcher()
@@ -429,11 +430,13 @@ namespace qmlog
   class abstract_log_t
   {
   protected:
-    dispatcher_t *dispatcher ;
+    std::set<dispatcher_t*> dispatchers ;
     int level, max_level ;
     int fields ;
+    friend class dispatcher_t ;
   public:
     abstract_log_t(int maximal_log_level, dispatcher_t *d) ;
+    unsigned d_counter() { return dispatchers.size() ; }
     int reduce_max_level(int new_max) ;
     int log_level(int new_level) ;
     int log_level() ;
@@ -442,41 +445,43 @@ namespace qmlog
     int enable_fields(int mask) ;
     int disable_fields(int mask) ;
     virtual ~abstract_log_t() ;
-    virtual void compose_message(int level, int line, const char *file, const char *func, const char *fmt, va_list args) ;
-    virtual void submit_message(int level, const char *message) = 0 ;
+    virtual void compose_message(dispatcher_t *d, int level, int line, const char *file, const char *func, const char *fmt, va_list args) ;
+    virtual void submit_message(dispatcher_t *d, int level, const char *message) = 0 ;
   } ;
 
   class log_file : public abstract_log_t
   {
-    bool to_be_closed ;
+    bool to_be_closed, failed ;
+    std::string file_path ;
     FILE *fp ;
   public:
     log_file(const char *path, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
     log_file(FILE *fp, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
-   ~log_file() ;
-    void submit_message(int level, const char *message) ;
+    virtual ~log_file() ;
+    void submit_message(dispatcher_t *d, int level, const char *message) ;
   } ;
 
   class log_stderr : public log_file
   {
   public:
     log_stderr(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
-   ~log_stderr() ;
+    virtual ~log_stderr() ;
   } ;
 
   class log_stdout : public log_file
   {
   public:
     log_stdout(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
-   ~log_stdout() { }
+    virtual ~log_stdout() { }
   } ;
 
   class log_syslog : public abstract_log_t
   {
+    bool initialized ;
   public:
     log_syslog(int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
-   ~log_syslog() ;
-    void submit_message(int level, const char *message) ;
+    virtual ~log_syslog() ;
+    void submit_message(dispatcher_t *d, int level, const char *message) ;
   } ;
 
   static inline dispatcher_t *dispatcher() __attribute__((always_inline)) ;
