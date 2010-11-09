@@ -52,6 +52,9 @@ namespace qmlog
 
     first = false ;
 
+    currently_enabled = false ;
+    if(access(QMLOG_ENABLER1, F_OK)==0)
+      currently_enabled = true ;
     register_dispatcher(default_dispatcher=new dispatcher_t) ;
     new qmlog::log_syslog(qmlog::Full, default_dispatcher) ;
     new qmlog::log_stderr(qmlog::Full, default_dispatcher) ;

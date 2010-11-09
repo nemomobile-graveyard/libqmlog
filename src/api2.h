@@ -51,6 +51,12 @@
 #define QMLOG_DISPATCHER qmlog::object.get_default_dispatcher()
 #endif
 
+#define QMLOG_ENABLER1 "/home/user/MyDocs/.QMLOG"
+
+// The following call is inlined due to "always_inline" attribute:
+#define QMLOG_IF    do { if(qmlog::enabled()) {
+#define QMLOG_ENDIF                              } } while(0)
+
 #define QMLOG_NONE     0
 #define QMLOG_INTERNAL 1
 #define QMLOG_CRITICAL 2
@@ -91,9 +97,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_INTERNAL
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_INTERNAL)
-#  define log_internal(...) (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_internal(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_internal(...) (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, ## __VA_ARGS__)
+#  define log_internal(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_INTERNAL, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_internal(...) (void)(0)
@@ -101,9 +107,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_CRITICAL
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_CRITICAL)
-#  define log_critical(...) (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_critical(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_critical(...) (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, ## __VA_ARGS__)
+#  define log_critical(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_CRITICAL, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_critical(...) (void)(0)
@@ -111,9 +117,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_ERROR
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_ERROR)
-#  define log_error(...) (QMLOG_DISPATCHER)->message(QMLOG_ERROR, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_error(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_ERROR, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_error(...) (QMLOG_DISPATCHER)->message(QMLOG_ERROR, ## __VA_ARGS__)
+#  define log_error(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_ERROR, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_error(...) (void)(0)
@@ -121,9 +127,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_WARNING
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_WARNING)
-#  define log_warning(...) (QMLOG_DISPATCHER)->message(QMLOG_WARNING, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_warning(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_WARNING, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_warning(...) (QMLOG_DISPATCHER)->message(QMLOG_WARNING, ## __VA_ARGS__)
+#  define log_warning(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_WARNING, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_warning(...) (void)(0)
@@ -131,9 +137,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_NOTICE
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_NOTICE)
-#  define log_notice(...) (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_notice(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_notice(...) (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, ## __VA_ARGS__)
+#  define log_notice(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_NOTICE, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_notice(...) (void)(0)
@@ -141,9 +147,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_INFO
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_INFO)
-#  define log_info(...) (QMLOG_DISPATCHER)->message(QMLOG_INFO, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_info(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_INFO, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_info(...) (QMLOG_DISPATCHER)->message(QMLOG_INFO, ## __VA_ARGS__)
+#  define log_info(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_INFO, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_info(...) (void)(0)
@@ -151,9 +157,9 @@
 
 #if QMLOG_LEVEL >= QMLOG_DEBUG
 # if (QMLOG_LOCATION_MASK) & (1<<QMLOG_DEBUG)
-#  define log_debug(...) (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, QMLOG_LOCATION, ## __VA_ARGS__)
+#  define log_debug(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, QMLOG_LOCATION, ## __VA_ARGS__) ; QMLOG_ENDIF
 # else
-#  define log_debug(...) (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, ## __VA_ARGS__)
+#  define log_debug(...) QMLOG_IF (QMLOG_DISPATCHER)->message(QMLOG_DEBUG, ## __VA_ARGS__) ; QMLOG_ENDIF
 # endif
 #else
 # define log_debug(...) (void)(0)
@@ -324,6 +330,7 @@ namespace qmlog
 
   class object_t
   {
+    bool currently_enabled ;
     dispatcher_t *default_dispatcher ;
     abstract_log_t *syslog_logger, *stderr_logger ;
   private:
@@ -335,6 +342,7 @@ namespace qmlog
     void unregister_dispatcher(dispatcher_t *d) { dispatchers.erase(d) ; }
     friend class dispatcher_t ; // for 2 above methods only
   public:
+    static bool enabled() __attribute__((always_inline)) ;
     void set_process_name(const std::string &new_name) ;
     std::string get_process_name() { return process_name ; }
 
@@ -484,6 +492,15 @@ namespace qmlog
     void submit_message(dispatcher_t *d, int level, const char *message) ;
   } ;
 
+  inline bool object_t::enabled() { return object.currently_enabled ; }
+
+  static inline bool enabled() __attribute__((always_inline)) ;
+
+  static inline bool enabled()
+  {
+    return qmlog::object.enabled() ;
+  }
+
   static inline dispatcher_t *dispatcher() __attribute__((always_inline)) ;
 
   static inline dispatcher_t *dispatcher()
@@ -520,6 +537,7 @@ namespace qmlog
   {
     object.set_process_name(new_name) ;
   }
+
 
 }
 
