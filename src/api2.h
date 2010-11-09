@@ -343,6 +343,7 @@ namespace qmlog
     friend class dispatcher_t ; // for 2 above methods only
   public:
     static bool enabled() __attribute__((always_inline)) ;
+    void enable(bool flag) { currently_enabled = flag ; }
     void set_process_name(const std::string &new_name) ;
     std::string get_process_name() { return process_name ; }
 
@@ -499,6 +500,16 @@ namespace qmlog
   static inline bool enabled()
   {
     return qmlog::object.enabled() ;
+  }
+
+  static inline void enable(bool flag=true)
+  {
+    qmlog::object.enable(flag) ;
+  }
+
+  static inline void disable()
+  {
+    enable(false) ;
   }
 
   static inline dispatcher_t *dispatcher() __attribute__((always_inline)) ;
