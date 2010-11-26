@@ -26,6 +26,7 @@ Provides header files for qmlog library.
 %package tests
 Summary:  Testcases for qmlog library
 Group:    Development/System
+Requires: testrunner-lite
 
 %description tests
 %{summary}.

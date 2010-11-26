@@ -1,5 +1,6 @@
 * Wed Nov 24 2010 Tapio Rantala <ext-tapio.rantala@nokia.com> 0.0.9-1
 - New upstream version
+- Add linklibs patch to fix linking
 
 * Mon Aug 23 2010 Tapio Rantala <ext-tapio.rantala@nokia.com> 0.0.5-1
 - Initial meego packaging
