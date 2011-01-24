@@ -11,3 +11,10 @@ index 9927010..6feb460 100644
  
  target.path = $$(DESTDIR)/usr/bin
  
+diff --git a/src/qmlog.prf b/src/qmlog.prf
+index 8b6e834..ec24c52 100644
+--- a/src/qmlog.prf
++++ b/src/qmlog.prf
+@@ -1 +1 @@
+-LIBS += -lqmlog
++LIBS += -lqmlog -lrt

@@ -1,5 +1,9 @@
+* Mon Dec 27 2010 Tapio Rantala <ext-tapio.rantala@nokia.com> 0.0.9-2
+- Add librt patch, -lrt is needed when using qmlog (BMC#12785)
+- Drop linklibs patch, included in librt patch
+
 * Wed Nov 24 2010 Tapio Rantala <ext-tapio.rantala@nokia.com> 0.0.9-1
-- New upstream version
+- New upstream version (BMC#10589)
 - Add linklibs patch to fix linking
 
 * Mon Aug 23 2010 Tapio Rantala <ext-tapio.rantala@nokia.com> 0.0.5-1

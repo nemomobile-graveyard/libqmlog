@@ -1,13 +1,13 @@
 %define _name qmlog
 Name:     libqmlog
 Version:  0.0.9
-Release:  1
+Release:  2
 Summary:  Generic logging library
-Group:    System/Libraries
+Group:    System/System Control
 License:  LGPLv2
 URL:      http://meego.gitorious.org/meego-middleware/libqmlog
 Source0:  %{_name}-%{version}.tar.bz2
-Patch0:   %{name}-0.0.9-linklibs.patch
+Patch0:   %{name}-0.0.9-librt.patch
 
 BuildRequires: pkgconfig(QtCore) >= 4.5
 
@@ -40,7 +40,7 @@ qmake
 make
 
 %install
-make INSTALL_ROOT=%{buildroot} install
+%qmake_install
 install -d %{buildroot}/%{_datadir}/%{name}-tests/
 mv %{buildroot}/%{_datadir}/%{_name}-tests/tests.xml %{buildroot}/%{_datadir}/%{name}-tests/tests.xml
 
