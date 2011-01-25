@@ -1,4 +1,4 @@
-VERSION = 0.0.4
+VERSION = $$(QMLOG_VERSION)
 TEMPLATE = app
 QT -= gui
 

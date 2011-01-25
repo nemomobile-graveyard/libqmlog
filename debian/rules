@@ -2,6 +2,7 @@
 # -*- makefile -*-
 
 export DH_VERBOSE=1
+export QMLOG_VERSION=$(shell head -n1 debian/changelog | sed "s/.*(\([^)+]*\).*/\1/")
 
 configure: configure-stamp
 configure-stamp:

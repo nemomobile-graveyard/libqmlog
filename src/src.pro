@@ -1,4 +1,4 @@
-VERSION = 0.0.9
+VERSION = 0.$$(QMLOG_VERSION)
 TEMPLATE=lib
 QT -= gui
 
