@@ -45,6 +45,7 @@
 
 #include <string>
 #include <set>
+#include <vector>
 #include <string>
 
 #ifndef QMLOG_DISPATCHER
@@ -292,6 +293,14 @@ namespace qmlog
     Timezone_Abbreviation = 1 << 16,
     Timezone_Offset       = 1 << 17,
     Level                 = 1 << 18,
+    Log_Line              = 1 << 19,
+
+    last_field            =      19,
+
+    Close_After_Write     = 1 << (last_field+1),
+    Cache_If_Cant_Open    = 1 << (last_field+2),
+    Dont_Create_File      = 1 << (last_field+3),
+    Retry_If_Failed       = 1 << (last_field+4),
 
     Monotonic_Mask        = Monotonic|Monotonic2|Monotonic3|Monotonic4,
     Time_Mask             = Time|Time2|Time3,
@@ -300,7 +309,7 @@ namespace qmlog
     Timezone_Tm_Block     = Timezone_Offset|Timezone_Abbreviation,
     Process_Block         = Name|Pid,
     Location_Block        = Line|Function,
-    All_Fields            = (1<<19)-1
+    All_Fields            = (1<<last_field<<1)-1
   } ;
 
   enum levels
@@ -460,14 +469,20 @@ namespace qmlog
 
   class log_file : public abstract_log_t
   {
-    bool to_be_closed, failed ;
     std::string file_path ;
+    bool by_fp, failed ;
     FILE *fp ;
+    std::vector<std::string> cache ;
   public:
     log_file(const char *path, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
     log_file(FILE *fp, int maximal_log_level=qmlog::Full, dispatcher_t *dispatcher=NULL) ;
     virtual ~log_file() ;
     void submit_message(dispatcher_t *d, int level, const char *message) ;
+  private:
+    bool open() ;
+    void close() ;
+    void flush_cache() ;
+    void write_message(const char *message) ;
   } ;
 
   class log_stderr : public log_file

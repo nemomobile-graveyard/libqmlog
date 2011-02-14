@@ -20,6 +20,9 @@
 #   License along with qmlog. If not, see http://www.gnu.org/licenses/   $
 \_______________________________________________________________________*/
 #include <syslog.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <cstdio>
 #include <cstring>
@@ -698,45 +701,87 @@ namespace qmlog
   }
 
   log_file::log_file(const char *path, int maximal_log_level, dispatcher_t *d)
-    : abstract_log_t(maximal_log_level, d), file_path(path)
+    : abstract_log_t(maximal_log_level, d), file_path(path), by_fp(false)
   {
     fp = NULL ;
     failed = false ;
-    to_be_closed = false ;
   }
 
   log_file::log_file(FILE *fp, int maximal_log_level, dispatcher_t *d)
-    : abstract_log_t(maximal_log_level, d)
+    : abstract_log_t(maximal_log_level, d), by_fp(true)
   {
     this->fp = fp ;
     failed = fp == NULL ; // don't try reopen non existing path, even if fp is NULL
-    to_be_closed = false ;
   }
 
   log_file::~log_file()
   {
+#if 0
     if (to_be_closed)
       fclose(fp) ;
+#endif
+    if (not cache.empty())
+      open() ; // will write cache, if possible
+    close() ;
+  }
+
+  bool log_file::open()
+  {
+    if (fp==NULL)
+    {
+      bool already_failed = failed and (by_fp or not (fields & Retry_If_Failed)) ;
+      if (already_failed)
+        return false ;
+      bool create_file = not (fields & Dont_Create_File) ;
+      int open_mode = 0666, open_flags = O_WRONLY | O_APPEND | ( create_file ? O_CREAT : 0) ;
+      int fd = ::open(file_path.c_str(), open_flags, open_mode) ;
+      if (fd<0)
+        return false ;
+      fp = fdopen(fd, "a") ;
+    }
+    if (fp!=NULL)
+      flush_cache() ;
+    return fp!=NULL ;
+  }
+
+  void log_file::close()
+  {
+    if (fp!=NULL and not by_fp)
+    {
+      fclose(fp) ;
+      fp = NULL ;
+    }
+  }
+
+  void log_file::flush_cache()
+  {
+    for (unsigned i=0; i<cache.size(); ++i)
+      write_message(cache[i].c_str()) ;
+    fflush(fp) ;
+    cache.resize(0) ;
+  }
+
+  void log_file::write_message(const char *message)
+  {
+    fprintf(fp, "%s\n", message) ;
   }
 
   void log_file::submit_message(dispatcher_t *, int /* level */, const char *message)
   {
-    if (fp==NULL)
+    bool opened = open() ;
+
+    if (not opened)
     {
-      if (failed) // don't try to open it again
-        return ;
-      fp = fopen(file_path.c_str(), "a") ;
-      if (fp==NULL)
-      {
-        failed = true ; /* to_be_closed is already 'false' */
-        return ;
-      }
-      else
-        to_be_closed = true ;
+      if (fields & Cache_If_Cant_Open)
+        cache.push_back(message) ;
+      return ;
     }
 
-    fprintf(fp, "%s\n", message) ;
+    write_message(message) ;
     fflush(fp) ;
+
+    if (fields & Close_After_Write)
+      close() ;
   }
 
   log_stderr::log_stderr(int maximal_log_level, dispatcher_t *d)
