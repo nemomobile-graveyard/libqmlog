@@ -1,7 +1,7 @@
 %define _name qmlog
 Name:     libqmlog
-Version:  0.0.9
-Release:  2
+Version:  0.10
+Release:  1
 Summary:  Generic logging library
 Group:    System/System Control
 License:  LGPLv2
@@ -36,6 +36,7 @@ Requires: testrunner-lite
 %patch0 -p1
 
 %build
+export QMLOG_VERSION=`head -n1 debian/changelog | sed "s/.*(\([^)+]*\).*/\1/"`
 qmake
 make
 
