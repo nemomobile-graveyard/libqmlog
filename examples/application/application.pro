@@ -5,7 +5,7 @@ SOURCES += qmlog-example.cpp
 INCLUDEPATH += ../../src/ ../../
 
 QMAKE_LIBDIR_FLAGS += -L../../src
-LIBS += -lqmlog
+LIBS += -lqmlog -lrt
 
 target.path = $$(DESTDIR)/usr/bin
 
