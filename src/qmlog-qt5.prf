@@ -1,0 +1,1 @@
+LIBS += -lqmlog-qt5 -lrt

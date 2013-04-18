@@ -1,1 +1,1 @@
-LIBS += -lqmlog
+LIBS += -lqmlog -lrt

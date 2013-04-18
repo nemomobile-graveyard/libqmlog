@@ -3,9 +3,8 @@ qmlog (0.10) unstable; urgency=low
   * take library version from changelog
   * using qmake-qt4 explicitly
   * more flexible file opening/closing
-  * library versioned dependency information added
 
- -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Thu, 17 Feb 2011 13:54:47 +0200
+ -- Ilya Dogolazky <ilya.dogolazky@nokia.com>  Thu, 17 Feb 2011 11:36:26 +0200
 
 qmlog (0.0.9) unstable; urgency=low
 

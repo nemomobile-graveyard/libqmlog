@@ -1,0 +1,39 @@
+<testdefinition version="0.1">
+  <suite name="qmlog-qt5-tests" domain="System Software">
+    <set name="simple_tests" description="basic qmlog functionality" feature="System Control" requirement="">
+      <environments>
+        <scratchbox>false</scratchbox>
+        <hardware>true</hardware>
+      </environments>
+      <!--
+      <case name="log_with_init" description="call init and do some logging">
+        <step>logtest log_with_init</step>
+      </case>
+      <case name="log_without_init" description="just do some logging">
+        <step>logtest log_without_init</step>
+      </case>
+      -->
+      <case name="test_empty_log_macro" description="logging without message">
+        <step>qmlog-qt5-example test_empty_log_macro</step>
+      </case>
+      <case name="test_change_log_level" description="increasing and reducing log level">
+        <step>qmlog-qt5-example test_change_log_level</step>
+      </case>
+      <case name="test_add_and_remove_logfile" description="log file">
+        <step>qmlog-qt5-example test_add_and_remove_logfile</step>
+      </case>
+      <case name="test_very_long_string" description="a huge message">
+        <step>qmlog-qt5-example test_very_long_string</step>
+      </case>
+      <case name="test_growing_length" description="find exact threshold for buffer overflow">
+        <step>qmlog-qt5-example test_growing_length 2>/dev/null</step>
+      </case>
+      <case name="test_remove_default_loggers" description="removing loggers, testing for a crash">
+        <step>qmlog-qt5-example test_remove_default_loggers</step>
+      </case>
+      <case name="run_all" description="all (but heavy) simple tests in one run">
+        <step>qmlog-qt5-example run_all</step>
+      </case>
+    </set>
+  </suite>
+</testdefinition>
